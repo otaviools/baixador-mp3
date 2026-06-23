@@ -1,0 +1,32 @@
+COMO RODAR
+==========
+
+1. Instale as dependências (uma vez só):
+   pip install -r requirements.txt
+
+2. Rode o servidor:
+   python app.py
+
+3. Abra no navegador:
+   http://localhost:5000
+
+4. Cole o link do YouTube, escolha a qualidade e clique em "BAIXAR E CONVERTER".
+   O navegador vai perguntar onde salvar o MP3 (ou salvar direto na pasta
+   de Downloads padrão, dependendo da configuração do seu navegador).
+   O arquivo NÃO fica salvo dentro da pasta do projeto -- ele é gerado
+   numa pasta temporária do sistema e apagada automaticamente depois
+   que o download termina.
+
+5. Para parar o servidor: Ctrl+C no terminal.
+
+DICA: se quiser que o navegador SEMPRE pergunte onde salvar (em vez de
+ir direto para a pasta Downloads padrão), ative essa opção nas
+configurações do navegador:
+   Chrome/Edge: Configurações > Downloads > "Perguntar onde salvar cada arquivo"
+   Firefox:     Configurações > Geral > Downloads > "Perguntar onde salvar cada arquivo"
+
+OBSERVAÇÕES
+===========
+- Precisa do FFmpeg instalado no sistema (você já configurou isso).
+- O servidor roda só na sua máquina (localhost) -- ninguém de fora acessa.
+- Use apenas para conteúdo que você tem direito de baixar.

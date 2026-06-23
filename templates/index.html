@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>yt2mp3 — console local</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0D0F0E;
+      --panel: #161917;
+      --panel-raised: #1E2220;
+      --line: #2A2F2C;
+      --signal: #3DFF8C;
+      --signal-dim: #1F6B43;
+      --peak: #FFB627;
+      --danger: #FF5C5C;
+      --text: #E8E6E0;
+      --text-dim: #8A8F8A;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      background-image:
+        radial-gradient(circle at 20% 10%, rgba(61, 255, 140, 0.04), transparent 40%),
+        radial-gradient(circle at 80% 90%, rgba(255, 182, 39, 0.03), transparent 40%);
+    }
+
+    .rack {
+      width: 100%;
+      max-width: 560px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .rack-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .rack-header .brand {
+      font-family: var(--mono);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.02em;
+    }
+
+    .rack-header .brand span {
+      color: var(--signal);
+    }
+
+    .rack-header .model {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+
+    .status-led {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 8px var(--signal);
+    }
+
+    .dot.off {
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+    }
+
+    label.field-label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    input#url {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    input#url:focus {
+      border-color: var(--signal-dim);
+    }
+
+    input#url::placeholder {
+      color: #54584F;
+    }
+
+    .quality-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .q-btn {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: center;
+    }
+
+    .q-btn:hover {
+      border-color: var(--signal-dim);
+      color: var(--text);
+    }
+
+    .q-btn.active {
+      background: rgba(61, 255, 140, 0.08);
+      border-color: var(--signal);
+      color: var(--signal);
+    }
+
+    .go-btn {
+      width: 100%;
+      background: var(--signal);
+      color: #06190E;
+      border: none;
+      border-radius: 8px;
+      padding: 15px;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: transform .1s, box-shadow .15s;
+    }
+
+    .go-btn:hover {
+      box-shadow: 0 0 24px rgba(61, 255, 140, 0.35);
+    }
+
+    .go-btn:active {
+      transform: scale(0.99);
+    }
+
+    .go-btn:disabled {
+      background: var(--panel-raised);
+      color: var(--text-dim);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .meter-block {
+      margin-top: 24px;
+      display: none;
+    }
+
+    .meter-block.show {
+      display: block;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .meter-label .pct {
+      color: var(--signal);
+    }
+
+    .meter {
+      display: flex;
+      gap: 3px;
+      height: 28px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 4px;
+    }
+
+    .seg {
+      flex: 1;
+      border-radius: 2px;
+      background: #222621;
+      transition: background .2s;
+    }
+
+    .seg.on {
+      background: var(--signal);
+    }
+
+    .seg.on.peak {
+      background: var(--peak);
+    }
+
+    .meter-status {
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      min-height: 18px;
+    }
+
+    .result {
+      margin-top: 18px;
+      display: none;
+      background: var(--panel-raised);
+      border: 1px solid var(--signal-dim);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result .title {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 10px;
+      word-break: break-word;
+    }
+
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--signal);
+      color: #06190E;
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .error {
+      margin-top: 18px;
+      display: none;
+      background: rgba(255, 92, 92, 0.08);
+      border: 1px solid var(--danger);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--danger);
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .footnote {
+      margin-top: 20px;
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .go-btn,
+      .seg,
+      input#url {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="rack">
+    <div class="rack-header">
+      <div>
+        <div class="brand">yt<span>2</span>mp3</div>
+      </div>
+      <div class="status-led">
+        <span class="dot {{ '' if ffmpeg_ok else 'off' }}"></span>
+        {{ 'FFMPEG OK' if ffmpeg_ok else 'FFMPEG AUSENTE' }}
+      </div>
+    </div>
+
+    <label class="field-label" for="url">LINK DO YOUTUBE</label>
+    <div class="input-row">
+      <input id="url" type="text" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+    </div>
+
+    <label class="field-label">QUALIDADE DO ÁUDIO</label>
+    <div class="quality-row">
+      <div class="q-btn" data-q="128">128 kbps</div>
+      <div class="q-btn active" data-q="192">192 kbps</div>
+      <div class="q-btn" data-q="320">320 kbps</div>
+    </div>
+
+    <button class="go-btn" id="goBtn">▸ BAIXAR E CONVERTER</button>
+
+    <div class="meter-block" id="meterBlock">
+      <div class="meter-label">
+        <span id="meterText">INICIANDO</span>
+        <span class="pct" id="meterPct">0%</span>
+      </div>
+      <div class="meter" id="meter"></div>
+      <div class="meter-status" id="meterStatus"></div>
+    </div>
+
+    <div class="result" id="result">
+      <div class="title" id="resultTitle"></div>
+      <a class="download-link" id="resultLink" href="#">⬇ SALVAR MP3</a>
+    </div>
+
+    <div class="error" id="errorBox"></div>
+  </div>
+
+  <script>
+    const SEGMENTS = 36;
+    const meter = document.getElementById('meter');
+    for (let i = 0; i < SEGMENTS; i++) {
+      const seg = document.createElement('div');
+      seg.className = 'seg';
+      meter.appendChild(seg);
+    }
+    const segs = meter.querySelectorAll('.seg');
+
+    let qualidade = "192";
+    document.querySelectorAll('.q-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        qualidade = btn.dataset.q;
+      });
+    });
+
+    function setMeter(pct) {
+      const ativos = Math.round((pct / 100) * SEGMENTS);
+      segs.forEach((seg, i) => {
+        seg.classList.toggle('on', i < ativos);
+        seg.classList.toggle('peak', i < ativos && i >= SEGMENTS - 4);
+      });
+      document.getElementById('meterPct').textContent = pct + '%';
+    }
+
+    const goBtn = document.getElementById('goBtn');
+    const urlInput = document.getElementById('url');
+    const meterBlock = document.getElementById('meterBlock');
+    const meterText = document.getElementById('meterText');
+    const meterStatus = document.getElementById('meterStatus');
+    const result = document.getElementById('result');
+    const errorBox = document.getElementById('errorBox');
+
+    const STATUS_LABELS = {
+      iniciando: 'INICIANDO',
+      baixando: 'BAIXANDO ÁUDIO',
+      convertendo: 'CONVERTENDO PARA MP3',
+      concluido: 'CONCLUÍDO',
+      erro: 'ERRO'
+    };
+
+    let polling = null;
+
+    goBtn.addEventListener('click', async () => {
+      const url = urlInput.value.trim();
+      errorBox.classList.remove('show');
+      result.classList.remove('show');
+
+      if (!url) {
+        errorBox.textContent = '⚠ Cole um link do YouTube primeiro.';
+        errorBox.classList.add('show');
+        return;
+      }
+
+      goBtn.disabled = true;
+      goBtn.textContent = '▸ ENVIANDO...';
+      meterBlock.classList.add('show');
+      setMeter(0);
+      meterText.textContent = 'INICIANDO';
+      meterStatus.textContent = 'Conectando ao YouTube...';
+
+      try {
+        const resp = await fetch('/api/baixar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, qualidade })
+        });
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          throw new Error(data.erro || 'Erro desconhecido.');
+        }
+
+        polling = setInterval(() => checarStatus(data.job_id), 800);
+      } catch (e) {
+        mostrarErro(e.message);
+      }
+    });
+
+    async function checarStatus(jobId) {
+      try {
+        const resp = await fetch('/api/status/' + jobId);
+        const job = await resp.json();
+
+        if (!resp.ok) {
+          throw new Error(job.erro || 'Erro ao consultar status.');
+        }
+
+        setMeter(job.progress || 0);
+        meterText.textContent = STATUS_LABELS[job.status] || job.status.toUpperCase();
+
+        if (job.status === 'baixando') {
+          meterStatus.textContent = 'Recebendo dados do servidor de áudio...';
+        } else if (job.status === 'convertendo') {
+          meterStatus.textContent = 'FFmpeg processando faixa em MP3...';
+        }
+
+        if (job.status === 'concluido') {
+          clearInterval(polling);
+          goBtn.disabled = false;
+          goBtn.textContent = '▸ BAIXAR E CONVERTER';
+          meterStatus.textContent = 'Pronto.';
+          document.getElementById('resultTitle').textContent = job.titulo || job.filename;
+          document.getElementById('resultLink').href = '/api/arquivo/' + jobId;
+          document.getElementById('resultLink').setAttribute('download', job.filename);
+          result.classList.add('show');
+        }
+
+        if (job.status === 'erro') {
+          clearInterval(polling);
+          mostrarErro(job.erro || 'Erro desconhecido durante o download.');
+        }
+      } catch (e) {
+        clearInterval(polling);
+        mostrarErro(e.message);
+      }
+    }
+
+    function mostrarErro(msg) {
+      goBtn.disabled = false;
+      goBtn.textContent = '▸ BAIXAR E CONVERTER';
+      meterBlock.classList.remove('show');
+      errorBox.textContent = '⚠ ' + msg;
+      errorBox.classList.add('show');
+    }
+
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') goBtn.click();
+    });
+  </script>
+
+</body>
+
+</html>
