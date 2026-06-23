@@ -2,7 +2,6 @@
 
 A simple web application to download YouTube videos and convert them directly to MP3 audio files. 
 
----
 
 ## 🚀 How to Run
 
@@ -25,9 +24,9 @@ Choose the quality.
 
 Click "BAIXAR E CONVERTER".
 
----
-
 💡 Note on files: The app doesn't clutter your project folder. It processes everything in a temporary system directory, automatically deletes it after the download finishes, and streams the MP3 straight to your browser.
+
+---
 
 ### 5. Stop the Server
 Press Ctrl + C in your terminal.
