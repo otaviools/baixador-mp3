@@ -24,20 +24,13 @@ def verificar_ffmpeg() -> bool:
 
 
 def limpar_nome_arquivo(nome: str) -> str:
-    """
-    Remove apenas os caracteres que de fato quebram nomes de arquivo
-    (Windows, Mac e Linux). Mantém espaços, acentos, parênteses etc.,
-    para o arquivo final ficar com o título "normal" do vídeo.
-    """
-    nome = re.sub(r'[\\/:*?"<>|]', "_", nome)   # caracteres proibidos
-    nome = re.sub(r"\s+", " ", nome).strip()    # espaços duplicados/sobrando
-    nome = nome.rstrip(". ")                     # Windows não aceita ponto/espaço no final
+    nome = re.sub(r'[\\/:*?"<>|]', "_", nome)   
+    nome = re.sub(r"\s+", " ", nome).strip()    
+    nome = nome.rstrip(". ")                     
     return nome
 
 
 def progress_hook_factory(job_id):
-    """Cria um hook de progresso que atualiza o dicionário JOBS."""
-
     def hook(d):
         status = d.get("status")
         if status == "downloading":
@@ -57,7 +50,6 @@ def progress_hook_factory(job_id):
 
 
 def executar_download(job_id: str, url: str, qualidade: str):
-    # 1. Primeiro só consulta os metadados (sem baixar) para obter o título real
     try:
         with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "noplaylist": True}) as ydl:
             info_preview = ydl.extract_info(url, download=False)
@@ -71,11 +63,7 @@ def executar_download(job_id: str, url: str, qualidade: str):
         return
 
     titulo_original = info_preview.get("title", "audio")
-    # 2. Sanitiza o título mantendo acentos/espaços, só removendo o que quebraria o arquivo
     nome_seguro = limpar_nome_arquivo(titulo_original)[:200]
-
-    # 3. Pasta temporária exclusiva deste job — não precisa checar duplicatas,
-    #    já que cada download tem seu próprio diretório isolado.
     pasta_job = TEMP_ROOT / job_id
     pasta_job.mkdir(parents=True, exist_ok=True)
     JOBS[job_id]["pasta"] = str(pasta_job)
@@ -155,7 +143,6 @@ def status(job_id):
     job = JOBS.get(job_id)
     if not job:
         return jsonify({"erro": "Job não encontrado."}), 404
-    # Não expõe o caminho interno do servidor para o front-end
     job_publico = {k: v for k, v in job.items() if k != "pasta"}
     return jsonify(job_publico)
 
