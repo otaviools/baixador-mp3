@@ -37,7 +37,7 @@ def progress_hook_factory(job_id):
             total = d.get("total_bytes") or d.get("total_bytes_estimate")
             baixado = d.get("downloaded_bytes", 0)
             if total:
-                pct = int(baixado / total * 90)  # reserva 10% pra conversão
+                pct = int(baixado / total * 90)
             else:
                 pct = JOBS[job_id]["progress"]
             JOBS[job_id]["progress"] = max(JOBS[job_id]["progress"], pct)
