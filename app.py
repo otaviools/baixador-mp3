@@ -30,6 +30,19 @@ def limpar_nome_arquivo(nome: str) -> str:
     return nome
 
 
+def mensagem_erro_download(erro: Exception) -> str:
+    msg = str(erro)
+    if "403" in msg or "Forbidden" in msg:
+        return "O YouTube recusou o download. Atualize a biblioteca: pip install -U yt-dlp"
+    if "Private video" in msg or "members-only" in msg:
+        return "Esse vídeo é privado ou restrito a membros."
+    if "Video unavailable" in msg or "not available" in msg:
+        return "Vídeo indisponível. Pode ter sido removido ou bloqueado na sua região."
+    if "Sign in to confirm" in msg or "bot" in msg:
+        return "O YouTube pediu verificação de que você não é um robô. Tente novamente em alguns minutos."
+    return "Não foi possível baixar. Verifique o link e tente novamente."
+
+
 def progress_hook_factory(job_id):
     def hook(d):
         status = d.get("status")
@@ -53,9 +66,9 @@ def executar_download(job_id: str, url: str, qualidade: str):
     try:
         with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "noplaylist": True}) as ydl:
             info_preview = ydl.extract_info(url, download=False)
-    except yt_dlp.utils.DownloadError:
+    except yt_dlp.utils.DownloadError as e:
         JOBS[job_id]["status"] = "erro"
-        JOBS[job_id]["erro"] = "Não foi possível baixar. Verifique o link e tente novamente."
+        JOBS[job_id]["erro"] = mensagem_erro_download(e)
         return
     except Exception as e:
         JOBS[job_id]["status"] = "erro"
@@ -95,9 +108,9 @@ def executar_download(job_id: str, url: str, qualidade: str):
         JOBS[job_id]["filename"] = final_name
         JOBS[job_id]["titulo"] = titulo_original
 
-    except yt_dlp.utils.DownloadError:
+    except yt_dlp.utils.DownloadError as e:
         JOBS[job_id]["status"] = "erro"
-        JOBS[job_id]["erro"] = "Não foi possível baixar. Verifique o link e tente novamente."
+        JOBS[job_id]["erro"] = mensagem_erro_download(e)
         shutil.rmtree(pasta_job, ignore_errors=True)
     except Exception as e:
         JOBS[job_id]["status"] = "erro"
