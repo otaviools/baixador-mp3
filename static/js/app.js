@@ -178,6 +178,7 @@
 
   let timerLink = null;
   urlInput.addEventListener('input', () => {
+    atualizarBotaoLimpar();
     clearTimeout(timerLink);
     timerLink = setTimeout(() => aoMudarLink(false), 450);
   });
@@ -186,7 +187,30 @@
     setTimeout(() => aoMudarLink(true), 0);
   });
 
+  /* Botão "X": limpa o link, a prévia e a capa do disco */
+  const clearBtn = $('clearBtn');
+
+  function atualizarBotaoLimpar() {
+    clearBtn.hidden = !urlInput.value;
+  }
+
+  function limparLink() {
+    clearTimeout(timerLink);
+    urlInput.value = '';
+    aoMudarLink(false);
+    urlInput.focus();
+  }
+
+  clearBtn.addEventListener('click', limparLink);
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && urlInput.value) {
+      e.preventDefault();
+      limparLink();
+    }
+  });
+
   function aoMudarLink(imediato) {
+    atualizarBotaoLimpar();
     const url = urlInput.value.trim();
     if (!url) {
       marcarCampo('neutro');
@@ -293,6 +317,7 @@
     goBtn.disabled = travado;
     urlInput.disabled = travado;
     pasteBtn.disabled = travado;
+    clearBtn.disabled = travado;
     form.querySelectorAll('input[name="qualidade"]').forEach((r) => (r.disabled = travado));
     goLabel.textContent = travado ? 'Prensando o disco…' : BOTAO_PADRAO;
   }
@@ -425,6 +450,7 @@
     pararPlayer();
     result.hidden = true;
     urlInput.value = '';
+    atualizarBotaoLimpar();
     marcarCampo('neutro');
     videoAtual = null;
     ultimaPreviaPedida = '';
@@ -610,6 +636,7 @@
       btn.disabled = !item.url;
       btn.addEventListener('click', () => {
         urlInput.value = item.url;
+        atualizarBotaoLimpar();
         const radio = form.querySelector(`input[name="qualidade"][value="${item.qualidade}"]`);
         if (radio) radio.checked = true;
         carregarPrevia(item.url);

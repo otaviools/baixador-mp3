@@ -358,7 +358,7 @@ body.is-playing .eq i {
 
 /* Terceira linha esmaecida (referência: Base) */
 .headline .line-faded {
-  color: color-mix(in srgb, var(--ink) 18%, transparent);
+  color: color-mix(in srgb, var(--ink) 50%, transparent);
 }
 
 .headline .line:nth-child(3) > span {
@@ -819,6 +819,50 @@ body.is-playing .eq i {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
+}
+
+/* Botão "X": limpa o link; só aparece quando o campo tem texto */
+.clear-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  animation: clear-in 0.25s var(--ease);
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.3s var(--ease);
+}
+
+.clear-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.clear-btn:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+  transform: rotate(90deg);
+}
+
+@keyframes clear-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
 }
 
 .hint {
@@ -1755,9 +1799,9 @@ body.is-playing .ta-arm {
   margin: 0 auto;
   padding: 28px var(--gutter) 0;
   display: grid;
-  grid-template-columns: 1fr 1.4fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: 32px;
-  align-items: start;
+  align-items: center;
 }
 
 .footer-top .mono {
@@ -1766,7 +1810,7 @@ body.is-playing .ta-arm {
 
 .footer-note {
   margin: 0;
-  max-width: 460px;
+  max-width: 100%;
   font-size: 13px;
   color: var(--muted);
 }
@@ -1793,7 +1837,7 @@ body.is-playing .ta-arm {
   font-size: 23.5vw;
   line-height: 0.74;
   letter-spacing: -0.07em;
-  color: color-mix(in srgb, var(--ink) 9%, transparent);
+  color: color-mix(in srgb, var(--ink) 100%, transparent);
   white-space: nowrap;
   user-select: none;
   transform: translateY(0.12em);

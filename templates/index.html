@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>djwaltin — do vídeo ao vinil</title>
+  <title>djwaltin | Baixar Músicas MP3</title>
   <meta name="description" content="Converta o áudio de um vídeo do YouTube em MP3, com prévia, player e histórico.">
   <meta name="theme-color" content="#ecebe6" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#121110" media="(prefers-color-scheme: dark)">
@@ -288,6 +288,11 @@
               <label class="label mono" for="url">01 — Link do vídeo</label>
               <div class="url-box" id="urlBox">
                 <input id="url" name="url" type="url" inputmode="url" placeholder="youtube.com/watch?v=…" autocomplete="off" spellcheck="false" aria-describedby="urlHint">
+                <button type="button" class="clear-btn" id="clearBtn" aria-label="Limpar link" title="Limpar link" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 6l12 12M18 6 6 18" />
+                  </svg>
+                </button>
                 <button type="button" class="paste-btn mono" id="pasteBtn">Colar</button>
               </div>
               <p class="hint" id="urlHint">Aceita youtube.com, youtu.be, Shorts e YouTube Music.</p>
