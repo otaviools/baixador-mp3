@@ -14,8 +14,10 @@ COMO RODAR
    O navegador vai perguntar onde salvar o MP3 (ou salvar direto na pasta
    de Downloads padrão, dependendo da configuração do seu navegador).
    O arquivo NÃO fica salvo dentro da pasta do projeto -- ele é gerado
-   numa pasta temporária do sistema e apagada automaticamente depois
-   que o download termina.
+   numa pasta temporária do sistema. Depois de salvo, ele continua
+   disponível por 2 minutos (para o player da página continuar tocando)
+   e então é apagado. Arquivos convertidos e nunca salvos são apagados
+   depois de 30 minutos.
 
 5. Para parar o servidor: Ctrl+C no terminal.
 

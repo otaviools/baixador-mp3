@@ -24,7 +24,10 @@ Choose the quality.
 
 Click "BAIXAR E CONVERTER".
 
-💡 Note on files: The app doesn't clutter your project folder. It processes everything in a temporary system directory, automatically deletes it after the download finishes, and streams the MP3 straight to your browser.
+💡 Note on files: The app doesn't clutter your project folder. It processes everything in a temporary system directory and streams the MP3 straight to your browser. After you save it, the file stays available for 2 more minutes (so the in-page player keeps working) and is then deleted. Converted files that are never saved are deleted after 30 minutes.
+
+### Interface
+Paste a link (or use the **COLAR** button) and the app shows a preview of the video (cover, title, channel, duration) plus the estimated MP3 size for each quality. During conversion it shows each step (connecting, downloading, converting, done). When it's ready you can listen to the MP3 with a waveform player before saving it. Recent conversions are listed below the panel, stored only in your browser.
 
 ---
 
