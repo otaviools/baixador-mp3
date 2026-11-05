@@ -3,6 +3,7 @@ import re
 import shutil
 import tempfile
 import threading
+import time
 import uuid
 from pathlib import Path
 
@@ -17,6 +18,12 @@ TEMP_ROOT.mkdir(exist_ok=True)
 
 
 JOBS = {}
+
+QUALIDADES = {"128", "192", "320"}
+# Depois de salvar, o arquivo fica disponível mais um pouco para o player da página
+SEGUNDOS_APOS_SALVAR = 120
+# Arquivos convertidos que nunca foram salvos expiram depois disso
+SEGUNDOS_EXPIRACAO = 30 * 60
 
 
 def verificar_ffmpeg() -> bool:
@@ -41,6 +48,29 @@ def mensagem_erro_download(erro: Exception) -> str:
     if "Sign in to confirm" in msg or "bot" in msg:
         return "O YouTube pediu verificação de que você não é um robô. Tente novamente em alguns minutos."
     return "Não foi possível baixar. Verifique o link e tente novamente."
+
+
+def resumo_video(meta: dict) -> dict:
+    """Campos do vídeo que a interface usa na prévia, no resultado e no histórico."""
+    return {
+        "id": meta.get("id"),
+        "titulo": meta.get("title") or "Sem título",
+        "canal": meta.get("uploader") or meta.get("channel") or "",
+        "duracao": int(meta.get("duration") or 0),
+        "thumbnail": meta.get("thumbnail") or "",
+    }
+
+
+def agendar_limpeza(job_id: str, segundos: int):
+    """Apaga a pasta do job e o registro dele depois de alguns segundos, em segundo plano."""
+
+    def limpar():
+        time.sleep(segundos)
+        job = JOBS.pop(job_id, None)
+        if job and job.get("pasta"):
+            shutil.rmtree(job["pasta"], ignore_errors=True)
+
+    threading.Thread(target=limpar, daemon=True).start()
 
 
 def progress_hook_factory(job_id):
@@ -76,6 +106,8 @@ def executar_download(job_id: str, url: str, qualidade: str):
         return
 
     titulo_original = info_preview.get("title", "audio")
+    resumo = resumo_video(info_preview)
+    JOBS[job_id].update(canal=resumo["canal"], duracao=resumo["duracao"], thumbnail=resumo["thumbnail"])
     nome_seguro = limpar_nome_arquivo(titulo_original)[:200]
     pasta_job = TEMP_ROOT / job_id
     pasta_job.mkdir(parents=True, exist_ok=True)
@@ -107,6 +139,9 @@ def executar_download(job_id: str, url: str, qualidade: str):
         JOBS[job_id]["progress"] = 100
         JOBS[job_id]["filename"] = final_name
         JOBS[job_id]["titulo"] = titulo_original
+        caminho_final = pasta_job / final_name
+        JOBS[job_id]["tamanho"] = caminho_final.stat().st_size if caminho_final.exists() else None
+        agendar_limpeza(job_id, SEGUNDOS_EXPIRACAO)
 
     except yt_dlp.utils.DownloadError as e:
         JOBS[job_id]["status"] = "erro"
@@ -123,6 +158,32 @@ def index():
     return render_template("index.html", ffmpeg_ok=verificar_ffmpeg())
 
 
+@app.route("/api/info", methods=["POST"])
+def info():
+    """Lê título, canal, duração e capa do vídeo sem baixar nada (prévia da interface)."""
+    data = request.get_json(silent=True) or {}
+    url = (data.get("url") or "").strip()
+    if not url:
+        return jsonify({"erro": "Cole um link do YouTube primeiro."}), 400
+
+    opcoes = {"quiet": True, "no_warnings": True, "noplaylist": True, "skip_download": True}
+    try:
+        with yt_dlp.YoutubeDL(opcoes) as ydl:
+            meta = ydl.extract_info(url, download=False)
+    except yt_dlp.utils.DownloadError as e:
+        msg = mensagem_erro_download(e)
+        if msg.startswith("Não foi possível baixar"):
+            msg = "Não encontrei esse vídeo. Confira o link e tente de novo."
+        return jsonify({"erro": msg}), 422
+    except Exception:
+        return jsonify({"erro": "Não foi possível ler esse link."}), 422
+
+    if meta.get("_type") == "playlist":
+        return jsonify({"erro": "Links de playlist não são aceitos. Cole o link de um vídeo só."}), 422
+
+    return jsonify(resumo_video(meta))
+
+
 @app.route("/api/baixar", methods=["POST"])
 def baixar():
     if not verificar_ffmpeg():
@@ -134,6 +195,8 @@ def baixar():
 
     if not url:
         return jsonify({"erro": "Cole um link do YouTube primeiro."}), 400
+    if qualidade not in QUALIDADES:
+        return jsonify({"erro": "Qualidade inválida. Use 128, 192 ou 320 kbps."}), 400
 
     job_id = str(uuid.uuid4())
     JOBS[job_id] = {
@@ -142,6 +205,11 @@ def baixar():
         "filename": None,
         "erro": None,
         "titulo": None,
+        "canal": None,
+        "duracao": None,
+        "thumbnail": None,
+        "tamanho": None,
+        "qualidade": qualidade,
         "pasta": None,
     }
 
@@ -178,15 +246,24 @@ def arquivo(job_id):
         mimetype="audio/mpeg",
     )
 
-    def limpar_depois():
-        import time
-        time.sleep(5)
-        shutil.rmtree(pasta_job, ignore_errors=True)
-        JOBS.pop(job_id, None)
-
-    threading.Thread(target=limpar_depois, daemon=True).start()
+    # Mantém o arquivo um pouco para o player da página continuar tocando
+    agendar_limpeza(job_id, SEGUNDOS_APOS_SALVAR)
 
     return resposta
+
+
+@app.route("/api/ouvir/<job_id>")
+def ouvir(job_id):
+    """Serve o MP3 para o player da página (sem forçar download; aceita Range para avançar)."""
+    job = JOBS.get(job_id)
+    if not job or job.get("status") != "concluido":
+        return jsonify({"erro": "Arquivo ainda não está pronto."}), 400
+
+    caminho_arquivo = Path(job["pasta"]) / job["filename"]
+    if not caminho_arquivo.exists():
+        return jsonify({"erro": "Arquivo não encontrado no servidor."}), 404
+
+    return send_file(caminho_arquivo, mimetype="audio/mpeg", conditional=True)
 
 
 if __name__ == "__main__":
