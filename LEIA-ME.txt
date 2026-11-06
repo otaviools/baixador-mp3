@@ -85,7 +85,34 @@ Importante:
 - O plano free dorme depois de 15 minutos sem acesso; a primeira visita depois
   disso demora, e conversões em andamento se perdem.
 - O YouTube pode bloquear IPs de nuvem ("Sign in to confirm you're not a bot").
-  Nesse caso o yt-dlp aceita um arquivo de cookies: trate-o como senha (Secret
-  Files do Render) e nunca o coloque no repositório.
+  A solução é usar cookies de uma conta (veja abaixo).
+
+COOKIES DO YOUTUBE (QUANDO O SERVIDOR É BARRADO COMO ROBÔ)
+=========================================================
+Se no Render aparecer "O YouTube pediu verificação de que você não é um robô",
+o yt-dlp precisa dos cookies de uma conta do YouTube. O app lê sozinho o
+arquivo /etc/secrets/cookies.txt (ou o caminho na variável YTDLP_COOKIES) e
+trabalha numa cópia temporária, sem alterar o original. A imagem já tem o Deno
+e o yt-dlp-ejs, que o YouTube exige quando há cookies.
+
+ATENÇÃO: o arquivo de cookies dá acesso à conta Google/YouTube de onde saiu.
+Trate como senha: use uma CONTA SECUNDÁRIA (o YouTube pode restringir contas
+usadas para downloads automáticos), nunca coloque no repositório (o .gitignore
+e o .dockerignore já bloqueiam cookies.txt) e não compartilhe.
+
+1. Exportar os cookies (formato Netscape, do jeito que o yt-dlp recomenda para
+   o YouTube não trocá-los logo em seguida):
+   - abra uma janela anônima e entre no YouTube com a conta secundária;
+   - na mesma aba, acesse https://www.youtube.com/robots.txt;
+   - exporte os cookies de youtube.com com uma extensão como
+     "Get cookies.txt LOCALLY" e salve como cookies.txt;
+   - feche a janela anônima sem sair da conta.
+2. Enviar ao Render: abra o serviço > Environment > Secret Files >
+   Add Secret File, nome cookies.txt, cole o conteúdo do arquivo e salve.
+   Depois rode Manual Deploy > Deploy latest commit.
+3. Apague a cópia local do cookies.txt depois de enviar.
+
+Os cookies vencem depois de um tempo. Se o erro de robô voltar, exporte de
+novo e substitua o Secret File.
 - Um baixador do YouTube aberto ao público conflita com os Termos de Serviço
   do YouTube. Para uso pessoal, mantenha a URL privada ou proteja com senha.

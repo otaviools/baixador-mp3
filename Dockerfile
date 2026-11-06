@@ -26,4 +26,4 @@ EXPOSE 10000
 
 # Um worker só: os jobs ficam na memória do processo (veja converter/jobs.py).
 # As threads atendem a consulta de status e o player enquanto outra conversão roda.
-CMD exec gunicorn app:app --bind 0.0.0.0:${PORT} --workers 1 --threads 8 --timeout 120
+CMD ["sh", "-c", "exec gunicorn app:app --bind 0.0.0.0:${PORT} --workers 1 --threads 8 --timeout 120"]

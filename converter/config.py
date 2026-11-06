@@ -1,3 +1,4 @@
+import os
 import tempfile
 from pathlib import Path
 
@@ -12,3 +13,9 @@ SECONDS_AFTER_SAVE = 120
 SECONDS_UNTIL_EXPIRY = 30 * 60
 
 MAX_FILENAME_LENGTH = 200
+
+# Cookies do YouTube (opcional), para quando o servidor é barrado como robô.
+# No Render: Secret File "cookies.txt", que aparece em /etc/secrets/cookies.txt.
+# Em outro lugar: aponte a variável de ambiente YTDLP_COOKIES para o arquivo.
+# O arquivo vale como senha da conta: nunca entra no repositório.
+COOKIES_FILE = Path(os.environ.get("YTDLP_COOKIES", "/etc/secrets/cookies.txt"))

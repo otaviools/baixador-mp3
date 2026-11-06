@@ -1,12 +1,16 @@
 """Integração com o yt-dlp: metadados do vídeo e download em MP3."""
 
 import re
-from collections.abc import Callable
+import shutil
+import tempfile
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
 import yt_dlp
 
+from . import config
 from .config import MAX_FILENAME_LENGTH
 
 BASE_OPTIONS = {"quiet": True, "no_warnings": True, "noplaylist": True}
@@ -71,10 +75,27 @@ def friendly_message(error: Exception, default: str) -> str:
     return default
 
 
+@contextmanager
+def _youtube_dl(options: dict) -> Iterator[yt_dlp.YoutubeDL]:
+    """Abre o yt-dlp com as opções base e, se houver, com os cookies do YouTube.
+
+    O yt-dlp regrava o arquivo de cookies ao terminar, mas o original pode ser somente
+    leitura (Secret File do Render). Por isso cada uso trabalha numa cópia própria,
+    apagada no fim; isso também evita duas conversões gravando o mesmo arquivo.
+    """
+    with tempfile.TemporaryDirectory(prefix="yt2mp3-cookies-") as folder:
+        if config.COOKIES_FILE.is_file():
+            copy = Path(folder) / "cookies.txt"
+            shutil.copyfile(config.COOKIES_FILE, copy)
+            options = {**options, "cookiefile": str(copy)}
+        with yt_dlp.YoutubeDL({**BASE_OPTIONS, **options}) as ydl:
+            yield ydl
+
+
 def read_video(url: str, default_error: str = READ_ERROR) -> Video:
     """Lê os metadados do vídeo sem baixar nada."""
     try:
-        with yt_dlp.YoutubeDL({**BASE_OPTIONS, "skip_download": True}) as ydl:
+        with _youtube_dl({"skip_download": True}) as ydl:
             meta = ydl.extract_info(url, download=False)
     except yt_dlp.utils.DownloadError as error:
         raise VideoError(friendly_message(error, default_error)) from error
@@ -92,7 +113,6 @@ def download_mp3(
 ) -> None:
     """Baixa o melhor áudio disponível e converte para MP3 com o FFmpeg."""
     options = {
-        **BASE_OPTIONS,
         "format": "bestaudio/best",
         # Concatena em vez de with_suffix: títulos com ponto ("ft. X") não podem perder o fim
         "outtmpl": f"{destination}.%(ext)s",
@@ -102,7 +122,7 @@ def download_mp3(
         "progress_hooks": [on_progress],
     }
     try:
-        with yt_dlp.YoutubeDL(options) as ydl:
+        with _youtube_dl(options) as ydl:
             ydl.download([url])
     except yt_dlp.utils.DownloadError as error:
         raise VideoError(friendly_message(error, DOWNLOAD_ERROR)) from error

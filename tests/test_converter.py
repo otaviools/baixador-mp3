@@ -49,6 +49,43 @@ class VideoTest(unittest.TestCase):
         self.assertEqual(options["postprocessors"][0]["preferredquality"], "192")
 
 
+class CookiesTest(unittest.TestCase):
+    def setUp(self):
+        self.folder = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.folder, ignore_errors=True)
+
+    def options_used(self, cookies_file: Path) -> dict:
+        """Opções que o yt-dlp recebe e se a cópia dos cookies existia durante o uso."""
+        seen = {}
+
+        def fake_youtube_dl(options):
+            seen["options"] = options
+            if "cookiefile" in options:
+                seen["copy_existed"] = Path(options["cookiefile"]).is_file()
+            return mock.MagicMock()
+
+        with mock.patch.object(youtube.config, "COOKIES_FILE", cookies_file), mock.patch.object(
+            yt_dlp, "YoutubeDL", side_effect=fake_youtube_dl
+        ):
+            youtube.download_mp3("url", self.folder / "faixa", "192", lambda _: None)
+        return seen
+
+    def test_without_cookies_file_no_cookies_are_sent(self):
+        seen = self.options_used(self.folder / "missing.txt")
+        self.assertNotIn("cookiefile", seen["options"])
+        self.assertTrue(seen["options"]["noplaylist"])
+
+    def test_cookies_go_through_a_temporary_copy(self):
+        secret = self.folder / "cookies.txt"
+        secret.write_text("# Netscape HTTP Cookie File\n", encoding="utf-8")
+        seen = self.options_used(secret)
+
+        copy = Path(seen["options"]["cookiefile"])
+        self.assertNotEqual(copy, secret)  # o original (Secret File) nunca é regravado
+        self.assertTrue(seen["copy_existed"])
+        self.assertFalse(copy.exists())  # a cópia é apagada no fim
+
+
 class ConversionTest(unittest.TestCase):
     def setUp(self):
         self.folder = Path(tempfile.mkdtemp())
