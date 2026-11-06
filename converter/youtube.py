@@ -15,7 +15,30 @@ from .config import MAX_FILENAME_LENGTH
 
 log = logging.getLogger(__name__)
 
-BASE_OPTIONS = {"quiet": True, "no_warnings": True, "noplaylist": True}
+
+class _YtDlpLogger:
+    """Encaminha avisos e erros do yt-dlp para o log do servidor (Render → Logs).
+
+    É por aviso que o yt-dlp conta, por exemplo, que os cookies não são mais válidos.
+    As mensagens de progresso (debug) ficam de fora para não poluir o log.
+    """
+
+    _log = logging.getLogger("yt_dlp")
+
+    def debug(self, message: str) -> None:
+        pass
+
+    def info(self, message: str) -> None:
+        pass
+
+    def warning(self, message: str) -> None:
+        self._log.warning(message)
+
+    def error(self, message: str) -> None:
+        self._log.error(message)
+
+
+BASE_OPTIONS = {"quiet": True, "noplaylist": True, "logger": _YtDlpLogger()}
 
 # Trecho da mensagem do yt-dlp → texto amigável para a interface
 ERROR_MESSAGES = (
