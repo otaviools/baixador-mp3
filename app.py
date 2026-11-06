@@ -13,7 +13,7 @@ from converter.config import DEFAULT_QUALITY, QUALITIES, SECONDS_AFTER_SAVE, TEM
 from converter.jobs import Job, JobRepository, Status
 from converter.youtube import VideoError, read_video
 
-# Logs no stderr: aparecem no terminal e na aba Logs do Render
+# Logs no stderr: aparecem no terminal onde o python app.py está rodando
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger(__name__)
 

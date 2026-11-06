@@ -2,24 +2,20 @@
 
 import logging
 import re
-import tempfile
-from collections.abc import Callable, Iterator
-from contextlib import contextmanager
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
 import yt_dlp
 
-from . import config
 from .config import MAX_FILENAME_LENGTH
 
 log = logging.getLogger(__name__)
 
 
 class _YtDlpLogger:
-    """Encaminha avisos e erros do yt-dlp para o log do servidor (Render → Logs).
+    """Encaminha avisos e erros do yt-dlp para o log do servidor (o terminal do python app.py).
 
-    É por aviso que o yt-dlp conta, por exemplo, que os cookies não são mais válidos.
     As mensagens de progresso (debug) ficam de fora para não poluir o log.
     """
 
@@ -93,7 +89,7 @@ class Video:
 
 
 def friendly_message(error: Exception, default: str) -> str:
-    # A interface só vê o texto amigável; o erro original fica no log do servidor (Render → Logs)
+    # A interface só vê o texto amigável; o erro original fica no log do servidor (terminal)
     log.warning("yt-dlp falhou: %s", error)
     text = str(error)
     for fragments, message in ERROR_MESSAGES:
@@ -102,77 +98,10 @@ def friendly_message(error: Exception, default: str) -> str:
     return default
 
 
-NETSCAPE_HEADERS = ("# Netscape HTTP Cookie File", "# HTTP Cookie File")
-COOKIE_FIELDS = 7  # domínio, subdomínios, caminho, https, validade, nome, valor
-# Cookies que só existem quando há uma conta Google logada
-LOGIN_COOKIES = frozenset({"SID", "__Secure-1PSID", "__Secure-3PSID", "SAPISID", "LOGIN_INFO"})
-
-
-def login_cookie_names(cookies: str) -> list[str]:
-    """Nomes dos cookies de login presentes no arquivo (só os nomes, nunca os valores)."""
-    names = set()
-    for line in cookies.splitlines():
-        fields = line.split("\t")
-        if len(fields) == COOKIE_FIELDS and (not line.startswith("#") or line.startswith("#HttpOnly_")):
-            names.add(fields[5])
-    return sorted(names & LOGIN_COOKIES)
-
-
-def normalize_cookies(text: str) -> str:
-    """Conserta estragos comuns de copiar e colar o arquivo de cookies (formato Netscape).
-
-    - remove o BOM que o Bloco de Notas coloca no início;
-    - troca quebras de linha do Windows (CRLF) por LF;
-    - devolve as tabulações quando viraram espaços (ex.: ao colar no painel do Render);
-    - acrescenta o cabeçalho "# Netscape HTTP Cookie File" quando ele falta.
-    """
-    lines = text.lstrip("﻿").replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    fixed = []
-    for line in lines:
-        stripped = line.strip()
-        is_cookie = stripped and (not stripped.startswith("#") or stripped.startswith("#HttpOnly_"))
-        if is_cookie and "\t" not in stripped and len(stripped.split()) == COOKIE_FIELDS:
-            line = "\t".join(stripped.split())
-        fixed.append(line)
-
-    body = "\n".join(fixed).strip()
-    if not body.startswith(NETSCAPE_HEADERS):
-        body = f"{NETSCAPE_HEADERS[0]}\n{body}"
-    return body + "\n"
-
-
-@contextmanager
-def _youtube_dl(options: dict) -> Iterator[yt_dlp.YoutubeDL]:
-    """Abre o yt-dlp com as opções base e, se houver, com os cookies do YouTube.
-
-    O yt-dlp regrava o arquivo de cookies ao terminar, mas o original pode ser somente
-    leitura (Secret File do Render). Por isso cada uso trabalha numa cópia própria,
-    já normalizada e apagada no fim; isso também evita duas conversões gravando o mesmo arquivo.
-    O conteúdo dos cookies nunca vai para o log: eles valem como senha da conta.
-    """
-    with tempfile.TemporaryDirectory(prefix="yt2mp3-cookies-") as folder:
-        if config.COOKIES_FILE.is_file():
-            original = config.COOKIES_FILE.read_text(encoding="utf-8", errors="replace")
-            cookies = normalize_cookies(original)
-            login = login_cookie_names(cookies)
-            log.info(
-                "Usando cookies do YouTube de %s (%d linhas%s; sessão logada: %s)",
-                config.COOKIES_FILE,
-                cookies.count("\n"),
-                ", formato corrigido" if cookies != original else "",
-                ", ".join(login) if login else "NÃO, faltam os cookies de login",
-            )
-            copy = Path(folder) / "cookies.txt"
-            copy.write_text(cookies, encoding="utf-8")
-            options = {**options, "cookiefile": str(copy)}
-        with yt_dlp.YoutubeDL({**BASE_OPTIONS, **options}) as ydl:
-            yield ydl
-
-
 def read_video(url: str, default_error: str = READ_ERROR) -> Video:
     """Lê os metadados do vídeo sem baixar nada."""
     try:
-        with _youtube_dl({"skip_download": True}) as ydl:
+        with yt_dlp.YoutubeDL({**BASE_OPTIONS, "skip_download": True}) as ydl:
             meta = ydl.extract_info(url, download=False)
     except yt_dlp.utils.DownloadError as error:
         raise VideoError(friendly_message(error, default_error)) from error
@@ -199,7 +128,7 @@ def download_mp3(
         "progress_hooks": [on_progress],
     }
     try:
-        with _youtube_dl(options) as ydl:
+        with yt_dlp.YoutubeDL({**BASE_OPTIONS, **options}) as ydl:
             ydl.download([url])
     except yt_dlp.utils.DownloadError as error:
         raise VideoError(friendly_message(error, DOWNLOAD_ERROR)) from error

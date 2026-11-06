@@ -2,7 +2,3 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
-
-# Cookies do YouTube: valem como senha, nunca vão para o repositório
-cookies.txt
-*cookies*.txt

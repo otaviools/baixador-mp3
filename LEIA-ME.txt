@@ -30,8 +30,7 @@ configurações do navegador:
 OBSERVAÇÕES
 ===========
 - Precisa do FFmpeg instalado no sistema (você já configurou isso).
-- Com "python app.py" o servidor roda só na sua máquina (localhost) --
-  ninguém de fora acessa. Só fica público se você fizer o deploy (abaixo).
+- O servidor roda só na sua máquina (localhost) -- ninguém de fora acessa.
 - Use apenas para conteúdo que você tem direito de baixar.
 
 ESTRUTURA DO PROJETO
@@ -55,64 +54,3 @@ CONVENÇÕES
 TESTES
 ======
    python -m unittest
-
-DEPLOY NO RENDER (DOCKER)
-=========================
-O app roda como um processo contínuo (jobs na memória, conversão em segundo
-plano, arquivos numa pasta temporária). Por isso o deploy é com Docker, e não
-com funções serverless (Vercel, Netlify, Lambda). O FFmpeg vai dentro da imagem.
-
-Arquivos:
-- Dockerfile: Python 3.14 + FFmpeg + gunicorn, sem rodar como root.
-- render.yaml: Blueprint do Render (web service Docker, plano free, branch main).
-- .dockerignore: deixa testes, docs e o histórico do git fora da imagem.
-
-Passos:
-1. Envie o código para o GitHub (branch main).
-2. No Render: New > Blueprint > escolha este repositório.
-3. Quando o deploy terminar, abra a URL *.onrender.com. Cada push na main
-   faz um deploy novo.
-
-Testar a mesma imagem no seu computador (precisa do Docker aberto):
-   docker build -t djwaltin .
-   docker run --rm -p 10000:10000 djwaltin
-   e abra http://localhost:10000
-
-Importante:
-- Um worker só (gunicorn --workers 1 --threads 8). Com mais workers, cada um
-  teria sua própria lista de jobs e a consulta de status daria
-  "Job não encontrado.".
-- O plano free dorme depois de 15 minutos sem acesso; a primeira visita depois
-  disso demora, e conversões em andamento se perdem.
-- O YouTube pode bloquear IPs de nuvem ("Sign in to confirm you're not a bot").
-  A solução é usar cookies de uma conta (veja abaixo).
-
-COOKIES DO YOUTUBE (QUANDO O SERVIDOR É BARRADO COMO ROBÔ)
-=========================================================
-Se no Render aparecer "O YouTube pediu verificação de que você não é um robô",
-o yt-dlp precisa dos cookies de uma conta do YouTube. O app lê sozinho o
-arquivo /etc/secrets/cookies.txt (ou o caminho na variável YTDLP_COOKIES) e
-trabalha numa cópia temporária, sem alterar o original. A imagem já tem o Deno
-e o yt-dlp-ejs, que o YouTube exige quando há cookies.
-
-ATENÇÃO: o arquivo de cookies dá acesso à conta Google/YouTube de onde saiu.
-Trate como senha: use uma CONTA SECUNDÁRIA (o YouTube pode restringir contas
-usadas para downloads automáticos), nunca coloque no repositório (o .gitignore
-e o .dockerignore já bloqueiam cookies.txt) e não compartilhe.
-
-1. Exportar os cookies (formato Netscape, do jeito que o yt-dlp recomenda para
-   o YouTube não trocá-los logo em seguida):
-   - abra uma janela anônima e entre no YouTube com a conta secundária;
-   - na mesma aba, acesse https://www.youtube.com/robots.txt;
-   - exporte os cookies de youtube.com com uma extensão como
-     "Get cookies.txt LOCALLY" e salve como cookies.txt;
-   - feche a janela anônima sem sair da conta.
-2. Enviar ao Render: abra o serviço > Environment > Secret Files >
-   Add Secret File, nome cookies.txt, cole o conteúdo do arquivo e salve.
-   Depois rode Manual Deploy > Deploy latest commit.
-3. Apague a cópia local do cookies.txt depois de enviar.
-
-Os cookies vencem depois de um tempo. Se o erro de robô voltar, exporte de
-novo e substitua o Secret File.
-- Um baixador do YouTube aberto ao público conflita com os Termos de Serviço
-  do YouTube. Para uso pessoal, mantenha a URL privada ou proteja com senha.

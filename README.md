@@ -89,58 +89,7 @@ Conventions:
 python -m unittest
 ```
 
-## ☁️ Deploy on Render (Docker)
-
-The app runs as a single long-lived process: jobs are kept in memory, conversions run in a background thread and files live in a temp folder. That is why it is deployed as a Docker web service, not as serverless functions (Vercel, Netlify, Lambda). FFmpeg is installed inside the image, so nothing has to be set up on the host.
-
-Files involved:
-
-- `Dockerfile`: Python 3.14 + FFmpeg + gunicorn, running as a non-root user.
-- `render.yaml`: Render Blueprint (web service, Docker runtime, free plan, deploys the `main` branch).
-- `.dockerignore`: keeps tests, docs and git history out of the image.
-
-Steps:
-
-1. Push the code to GitHub (`main` branch).
-2. On [Render](https://render.com), choose **New → Blueprint** and select this repository. Render reads `render.yaml` and builds the `Dockerfile`.
-3. Open the `*.onrender.com` URL when the deploy finishes. Each push to `main` deploys again.
-
-Test the same image locally (requires Docker):
-
-```bash
-docker build -t djwaltin .
-```
-
-```bash
-docker run --rm -p 10000:10000 djwaltin
-```
-
-Then open http://localhost:10000.
-
-Things to know:
-
-- **One worker only.** gunicorn runs with `--workers 1 --threads 8`. More workers would each have their own job list, and status polling would fail with "Job não encontrado.".
-- **Free plan sleeps.** The instance stops after 15 minutes without traffic; the first visit after that takes a while, and jobs in progress are lost on restart.
-- **YouTube may block cloud IPs** ("Sign in to confirm you're not a bot"). Fix it with a cookies file, see below.
-- **Terms of use.** A public YouTube downloader conflicts with YouTube's Terms of Service. For personal use, keep the URL private or put the service behind authentication.
-
-### YouTube cookies (when the server is blocked as a bot)
-
-If conversions on Render fail with "O YouTube pediu verificação de que você não é um robô", give yt-dlp the cookies of a YouTube account. The app picks them up automatically from `/etc/secrets/cookies.txt` (or from the path in the `YTDLP_COOKIES` environment variable) and works on a temporary copy, so the original file is never modified. The image already ships Deno and `yt-dlp-ejs`, which YouTube requires when cookies are used.
-
-> ⚠️ The cookies file gives access to the YouTube/Google account it came from. Treat it like a password: use a **secondary account** (YouTube may restrict accounts used for automated downloads), never commit it (`.gitignore` and `.dockerignore` already block `cookies.txt`) and never share it.
-
-1. **Export the cookies** in Netscape format (the method recommended by yt-dlp, so YouTube does not rotate them right away):
-   - open a private/incognito window and sign in to YouTube with the secondary account;
-   - in the same tab, go to `https://www.youtube.com/robots.txt`;
-   - export the cookies for `youtube.com` with an extension such as "Get cookies.txt LOCALLY" and save them as `cookies.txt`;
-   - close the private window without signing out.
-2. **Upload them to Render:** open the service → **Environment** → **Secret Files** → **Add Secret File**, name it `cookies.txt` and paste the file content. Save, then run **Manual Deploy → Deploy latest commit**.
-3. **Delete the local copy** of `cookies.txt` once it is on Render.
-
-Cookies expire after a while. If the bot error comes back, export them again and replace the secret file.
-
 📌 Important Notes
-FFmpeg Required: Make sure FFmpeg is installed and configured in your system's environment variables when running locally (the Docker image already includes it).
-Local by default: `python app.py` only listens on localhost. It is reachable from the outside only if you deploy it (see above).
+FFmpeg Required: Make sure FFmpeg is installed and configured in your system's environment variables.
+Local Only: The server runs strictly on your localhost. It is completely private and inaccessible from the outside.
 Disclaimer: Use this tool responsibly and only download content you have the rights to.

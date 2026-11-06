@@ -3,7 +3,6 @@
 O yt-dlp é simulado: os testes não acessam a internet nem o YouTube.
 """
 
-import http.cookiejar
 import shutil
 import tempfile
 import unittest
@@ -48,74 +47,6 @@ class VideoTest(unittest.TestCase):
         options = ydl.call_args.args[0]
         self.assertTrue(options["outtmpl"].endswith("Faixa ft. Fulano.%(ext)s"))
         self.assertEqual(options["postprocessors"][0]["preferredquality"], "192")
-
-
-class CookiesTest(unittest.TestCase):
-    def setUp(self):
-        self.folder = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, self.folder, ignore_errors=True)
-
-    def options_used(self, cookies_file: Path) -> dict:
-        """Opções que o yt-dlp recebe e se a cópia dos cookies existia durante o uso."""
-        seen = {}
-
-        def fake_youtube_dl(options):
-            seen["options"] = options
-            if "cookiefile" in options:
-                seen["copy_existed"] = Path(options["cookiefile"]).is_file()
-            return mock.MagicMock()
-
-        with mock.patch.object(youtube.config, "COOKIES_FILE", cookies_file), mock.patch.object(
-            yt_dlp, "YoutubeDL", side_effect=fake_youtube_dl
-        ):
-            youtube.download_mp3("url", self.folder / "faixa", "192", lambda _: None)
-        return seen
-
-    def test_without_cookies_file_no_cookies_are_sent(self):
-        seen = self.options_used(self.folder / "missing.txt")
-        self.assertNotIn("cookiefile", seen["options"])
-        self.assertTrue(seen["options"]["noplaylist"])
-
-    def test_cookies_go_through_a_temporary_copy(self):
-        secret = self.folder / "cookies.txt"
-        secret.write_text("# Netscape HTTP Cookie File\n", encoding="utf-8")
-        seen = self.options_used(secret)
-
-        copy = Path(seen["options"]["cookiefile"])
-        self.assertNotEqual(copy, secret)  # o original (Secret File) nunca é regravado
-        self.assertTrue(seen["copy_existed"])
-        self.assertFalse(copy.exists())  # a cópia é apagada no fim
-
-
-class NormalizeCookiesTest(unittest.TestCase):
-    # Valores fictícios: nenhum cookie real é usado nos testes
-    ROWS = [
-        [".youtube.com", "TRUE", "/", "TRUE", "1893456000", "PREF", "f6=40000000"],
-        ["#HttpOnly_.youtube.com", "TRUE", "/", "TRUE", "1893456000", "SID", "valor-ficticio"],
-    ]
-
-    def load(self, text: str) -> list[str]:
-        """Carrega com o leitor Netscape do Python (o mesmo que o yt-dlp usa por baixo)."""
-        path = Path(tempfile.mkdtemp()) / "cookies.txt"
-        self.addCleanup(shutil.rmtree, path.parent, ignore_errors=True)
-        path.write_text(youtube.normalize_cookies(text), encoding="utf-8")
-        jar = http.cookiejar.MozillaCookieJar(str(path))
-        jar.load(ignore_discard=True, ignore_expires=True)
-        return sorted(cookie.name for cookie in jar)
-
-    def test_valid_file_is_kept(self):
-        text = "# Netscape HTTP Cookie File\n" + "\n".join("\t".join(row) for row in self.ROWS) + "\n"
-        self.assertEqual(youtube.normalize_cookies(text), text)
-
-    def test_detects_login_cookies_by_name_only(self):
-        text = youtube.normalize_cookies("\n".join("\t".join(row) for row in self.ROWS))
-        self.assertEqual(youtube.login_cookie_names(text), ["SID"])
-        logged_out = youtube.normalize_cookies("\t".join(self.ROWS[0]))
-        self.assertEqual(youtube.login_cookie_names(logged_out), [])
-
-    def test_fixes_bom_crlf_missing_header_and_spaces_instead_of_tabs(self):
-        broken = "﻿\r\n" + "\r\n".join("   ".join(row) for row in self.ROWS) + "\r\n"
-        self.assertEqual(self.load(broken), ["PREF", "SID"])
 
 
 class ConversionTest(unittest.TestCase):
