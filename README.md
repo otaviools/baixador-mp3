@@ -1,4 +1,4 @@
-# YouTube to MP3 Downloader 🎵
+# DJWaltin - YouTube to MP3 Downloader 🎵
 
 A simple web application to download YouTube videos and convert them directly to MP3 audio files. 
 
