@@ -107,6 +107,12 @@ class NormalizeCookiesTest(unittest.TestCase):
         text = "# Netscape HTTP Cookie File\n" + "\n".join("\t".join(row) for row in self.ROWS) + "\n"
         self.assertEqual(youtube.normalize_cookies(text), text)
 
+    def test_detects_login_cookies_by_name_only(self):
+        text = youtube.normalize_cookies("\n".join("\t".join(row) for row in self.ROWS))
+        self.assertEqual(youtube.login_cookie_names(text), ["SID"])
+        logged_out = youtube.normalize_cookies("\t".join(self.ROWS[0]))
+        self.assertEqual(youtube.login_cookie_names(logged_out), [])
+
     def test_fixes_bom_crlf_missing_header_and_spaces_instead_of_tabs(self):
         broken = "﻿\r\n" + "\r\n".join("   ".join(row) for row in self.ROWS) + "\r\n"
         self.assertEqual(self.load(broken), ["PREF", "SID"])

@@ -104,6 +104,18 @@ def friendly_message(error: Exception, default: str) -> str:
 
 NETSCAPE_HEADERS = ("# Netscape HTTP Cookie File", "# HTTP Cookie File")
 COOKIE_FIELDS = 7  # domínio, subdomínios, caminho, https, validade, nome, valor
+# Cookies que só existem quando há uma conta Google logada
+LOGIN_COOKIES = frozenset({"SID", "__Secure-1PSID", "__Secure-3PSID", "SAPISID", "LOGIN_INFO"})
+
+
+def login_cookie_names(cookies: str) -> list[str]:
+    """Nomes dos cookies de login presentes no arquivo (só os nomes, nunca os valores)."""
+    names = set()
+    for line in cookies.splitlines():
+        fields = line.split("\t")
+        if len(fields) == COOKIE_FIELDS and (not line.startswith("#") or line.startswith("#HttpOnly_")):
+            names.add(fields[5])
+    return sorted(names & LOGIN_COOKIES)
 
 
 def normalize_cookies(text: str) -> str:
@@ -142,11 +154,13 @@ def _youtube_dl(options: dict) -> Iterator[yt_dlp.YoutubeDL]:
         if config.COOKIES_FILE.is_file():
             original = config.COOKIES_FILE.read_text(encoding="utf-8", errors="replace")
             cookies = normalize_cookies(original)
+            login = login_cookie_names(cookies)
             log.info(
-                "Usando cookies do YouTube de %s (%d linhas%s)",
+                "Usando cookies do YouTube de %s (%d linhas%s; sessão logada: %s)",
                 config.COOKIES_FILE,
                 cookies.count("\n"),
                 ", formato corrigido" if cookies != original else "",
+                ", ".join(login) if login else "NÃO, faltam os cookies de login",
             )
             copy = Path(folder) / "cookies.txt"
             copy.write_text(cookies, encoding="utf-8")
