@@ -3,6 +3,7 @@
 Rotas e campos JSON ficam em português: são o contrato da API lido pela interface.
 """
 
+import logging
 import shutil
 
 from flask import Flask, jsonify, render_template, request, send_file
@@ -11,6 +12,10 @@ from converter import conversion
 from converter.config import DEFAULT_QUALITY, QUALITIES, SECONDS_AFTER_SAVE, TEMP_DIR
 from converter.jobs import Job, JobRepository, Status
 from converter.youtube import VideoError, read_video
+
+# Logs no stderr: aparecem no terminal e na aba Logs do Render
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+log = logging.getLogger(__name__)
 
 app = Flask(__name__)
 jobs = JobRepository()
@@ -73,6 +78,7 @@ def info():
     except VideoError as error:
         raise ApiError(str(error), 422) from error
     except Exception as error:  # noqa: BLE001
+        log.exception("Falha inesperada ao ler %s", url)
         raise ApiError("Não foi possível ler esse link.", 422) from error
     return jsonify(video.to_json())
 

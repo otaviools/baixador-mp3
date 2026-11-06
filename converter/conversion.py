@@ -1,10 +1,13 @@
 """Executa uma conversão em segundo plano e mantém o Job atualizado."""
 
+import logging
 import threading
 
 from . import youtube
 from .config import SECONDS_UNTIL_EXPIRY, TEMP_DIR
 from .jobs import Job, JobRepository, Status
+
+log = logging.getLogger(__name__)
 
 # O download vai até 90%; o restante representa a conversão pelo FFmpeg
 DOWNLOAD_END_PROGRESS = 90
@@ -30,6 +33,7 @@ def _run(repository: JobRepository, job: Job, url: str) -> None:
         job.fail(str(error))
         return
     except Exception as error:  # noqa: BLE001 — qualquer falha precisa chegar à interface
+        log.exception("Conversão %s falhou", job.id)
         job.fail(f"Erro inesperado: {error}")
         return
 

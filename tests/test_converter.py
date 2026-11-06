@@ -3,6 +3,7 @@
 O yt-dlp é simulado: os testes não acessam a internet nem o YouTube.
 """
 
+import http.cookiejar
 import shutil
 import tempfile
 import unittest
@@ -84,6 +85,31 @@ class CookiesTest(unittest.TestCase):
         self.assertNotEqual(copy, secret)  # o original (Secret File) nunca é regravado
         self.assertTrue(seen["copy_existed"])
         self.assertFalse(copy.exists())  # a cópia é apagada no fim
+
+
+class NormalizeCookiesTest(unittest.TestCase):
+    # Valores fictícios: nenhum cookie real é usado nos testes
+    ROWS = [
+        [".youtube.com", "TRUE", "/", "TRUE", "1893456000", "PREF", "f6=40000000"],
+        ["#HttpOnly_.youtube.com", "TRUE", "/", "TRUE", "1893456000", "SID", "valor-ficticio"],
+    ]
+
+    def load(self, text: str) -> list[str]:
+        """Carrega com o leitor Netscape do Python (o mesmo que o yt-dlp usa por baixo)."""
+        path = Path(tempfile.mkdtemp()) / "cookies.txt"
+        self.addCleanup(shutil.rmtree, path.parent, ignore_errors=True)
+        path.write_text(youtube.normalize_cookies(text), encoding="utf-8")
+        jar = http.cookiejar.MozillaCookieJar(str(path))
+        jar.load(ignore_discard=True, ignore_expires=True)
+        return sorted(cookie.name for cookie in jar)
+
+    def test_valid_file_is_kept(self):
+        text = "# Netscape HTTP Cookie File\n" + "\n".join("\t".join(row) for row in self.ROWS) + "\n"
+        self.assertEqual(youtube.normalize_cookies(text), text)
+
+    def test_fixes_bom_crlf_missing_header_and_spaces_instead_of_tabs(self):
+        broken = "﻿\r\n" + "\r\n".join("   ".join(row) for row in self.ROWS) + "\r\n"
+        self.assertEqual(self.load(broken), ["PREF", "SID"])
 
 
 class ConversionTest(unittest.TestCase):

@@ -1,7 +1,7 @@
 """Integração com o yt-dlp: metadados do vídeo e download em MP3."""
 
+import logging
 import re
-import shutil
 import tempfile
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -12,6 +12,8 @@ import yt_dlp
 
 from . import config
 from .config import MAX_FILENAME_LENGTH
+
+log = logging.getLogger(__name__)
 
 BASE_OPTIONS = {"quiet": True, "no_warnings": True, "noplaylist": True}
 
@@ -68,11 +70,40 @@ class Video:
 
 
 def friendly_message(error: Exception, default: str) -> str:
+    # A interface só vê o texto amigável; o erro original fica no log do servidor (Render → Logs)
+    log.warning("yt-dlp falhou: %s", error)
     text = str(error)
     for fragments, message in ERROR_MESSAGES:
         if any(fragment in text for fragment in fragments):
             return message
     return default
+
+
+NETSCAPE_HEADERS = ("# Netscape HTTP Cookie File", "# HTTP Cookie File")
+COOKIE_FIELDS = 7  # domínio, subdomínios, caminho, https, validade, nome, valor
+
+
+def normalize_cookies(text: str) -> str:
+    """Conserta estragos comuns de copiar e colar o arquivo de cookies (formato Netscape).
+
+    - remove o BOM que o Bloco de Notas coloca no início;
+    - troca quebras de linha do Windows (CRLF) por LF;
+    - devolve as tabulações quando viraram espaços (ex.: ao colar no painel do Render);
+    - acrescenta o cabeçalho "# Netscape HTTP Cookie File" quando ele falta.
+    """
+    lines = text.lstrip("﻿").replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    fixed = []
+    for line in lines:
+        stripped = line.strip()
+        is_cookie = stripped and (not stripped.startswith("#") or stripped.startswith("#HttpOnly_"))
+        if is_cookie and "\t" not in stripped and len(stripped.split()) == COOKIE_FIELDS:
+            line = "\t".join(stripped.split())
+        fixed.append(line)
+
+    body = "\n".join(fixed).strip()
+    if not body.startswith(NETSCAPE_HEADERS):
+        body = f"{NETSCAPE_HEADERS[0]}\n{body}"
+    return body + "\n"
 
 
 @contextmanager
@@ -81,12 +112,21 @@ def _youtube_dl(options: dict) -> Iterator[yt_dlp.YoutubeDL]:
 
     O yt-dlp regrava o arquivo de cookies ao terminar, mas o original pode ser somente
     leitura (Secret File do Render). Por isso cada uso trabalha numa cópia própria,
-    apagada no fim; isso também evita duas conversões gravando o mesmo arquivo.
+    já normalizada e apagada no fim; isso também evita duas conversões gravando o mesmo arquivo.
+    O conteúdo dos cookies nunca vai para o log: eles valem como senha da conta.
     """
     with tempfile.TemporaryDirectory(prefix="yt2mp3-cookies-") as folder:
         if config.COOKIES_FILE.is_file():
+            original = config.COOKIES_FILE.read_text(encoding="utf-8", errors="replace")
+            cookies = normalize_cookies(original)
+            log.info(
+                "Usando cookies do YouTube de %s (%d linhas%s)",
+                config.COOKIES_FILE,
+                cookies.count("\n"),
+                ", formato corrigido" if cookies != original else "",
+            )
             copy = Path(folder) / "cookies.txt"
-            shutil.copyfile(config.COOKIES_FILE, copy)
+            copy.write_text(cookies, encoding="utf-8")
             options = {**options, "cookiefile": str(copy)}
         with yt_dlp.YoutubeDL({**BASE_OPTIONS, **options}) as ydl:
             yield ydl
