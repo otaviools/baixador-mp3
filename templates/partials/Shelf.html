@@ -1,0 +1,112 @@
+{#- Prateleira de capas: a história do som gravado, do fonógrafo ao MP3. -#}
+{% macro sleeve(number, year, name, color, current=false) %}
+<li class="era{{ ' era-now' if current }}" style="--sleeve: var(--sleeve-{{ color }})">
+  <span class="era-disc" aria-hidden="true"></span>
+  <div class="era-sleeve">
+    <span class="mono era-no">Nº {{ '%02d' % number }}</span>
+    <svg class="era-icon" viewBox="0 0 64 64" aria-hidden="true">{{ caller() }}</svg>
+    <strong class="era-year">{{ year }}</strong>
+    <span class="era-name">{{ name }}</span>
+    {% if current %}<span class="mono era-here">Você está aqui</span>{% endif %}
+  </div>
+</li>
+{% endmacro %}
+
+<section class="eras" aria-labelledby="erasTitle">
+  <div class="page eras-head">
+    <h2 class="eras-title" id="erasTitle">De 1877 a 2023</h2>
+  </div>
+  <div class="eras-viewport">
+    <div class="eras-shelf" aria-hidden="true"></div>
+    <ul class="eras-track" id="erasTrack">
+      {% call sleeve(1, 1877, 'Fonógrafo', 'ink') %}
+      <rect x="8" y="42" width="24" height="12" rx="1.5" />
+      <rect x="10" y="33" width="20" height="9" rx="3" />
+      <path d="M13 33v9M17 33v9M21 33v9M25 33v9" />
+      <path d="M30 37c10-2 16-10 20-21l8 6c-8 9-16 16-28 18" />
+      {% endcall %}
+      {% call sleeve(2, 1887, 'Gramofone', 'orange') %}
+      <rect x="8" y="46" width="30" height="10" rx="1.5" />
+      <ellipse cx="23" cy="46" rx="13" ry="3" />
+      <path d="M32 44c4-6 5-12 7-17" />
+      <path d="M39 27 50 7c6 1 9 6 8 13Z" />
+      {% endcall %}
+      {% call sleeve(3, 1920, 'Rádio', 'paper') %}
+      <rect x="8" y="20" width="48" height="34" rx="6" />
+      <circle cx="24" cy="37" r="9" />
+      <path d="M18 34h12M17 37h14M18 40h12" />
+      <circle cx="45" cy="31" r="4" />
+      <circle cx="41" cy="45" r="2" />
+      <circle cx="49" cy="45" r="2" />
+      <path d="M44 20 54 7" />
+      {% endcall %}
+      {% call sleeve(4, 1927, 'Jukebox', 'gold') %}
+      <path d="M14 58V28a18 18 0 0 1 36 0v30Z" />
+      <path d="M20 40V30a12 12 0 0 1 24 0v10Z" />
+      <path d="M20 47h24M20 52h24" />
+      {% endcall %}
+      {% call sleeve(5, 1931, 'Microfone', 'graphite') %}
+      <rect x="22" y="6" width="20" height="30" rx="10" />
+      <path d="M25 15h14M24 21h16M25 27h14" />
+      <path d="M17 24v4a15 15 0 0 0 30 0v-4" />
+      <path d="M32 43v12M22 57h20" />
+      {% endcall %}
+      {% call sleeve(6, 1935, 'Fita de rolo', 'ink') %}
+      <circle cx="19" cy="22" r="12" />
+      <circle cx="45" cy="22" r="12" />
+      <circle cx="19" cy="22" r="3" />
+      <circle cx="45" cy="22" r="3" />
+      <rect x="6" y="40" width="52" height="16" rx="3" />
+      <path d="M19 34l6 6M45 34l-6 6M14 48h8M42 48h8" />
+      {% endcall %}
+      {% call sleeve(7, 1948, 'Vinil LP', 'orange') %}
+      <circle cx="32" cy="32" r="25" />
+      <circle cx="32" cy="32" r="18" stroke-dasharray="2 3" />
+      <circle cx="32" cy="32" r="9" />
+      <circle cx="32" cy="32" r="1.5" />
+      {% endcall %}
+      {% call sleeve(8, 1949, 'Compacto 45', 'paper') %}
+      <circle cx="32" cy="32" r="21" />
+      <circle cx="32" cy="32" r="12" />
+      <circle cx="32" cy="32" r="6" />
+      <path d="M32 11v4M32 49v4" />
+      {% endcall %}
+      {% call sleeve(9, 1963, 'Fita cassete', 'gold') %}
+      <rect x="6" y="14" width="52" height="36" rx="4" />
+      <rect x="12" y="19" width="40" height="11" rx="2" />
+      <circle cx="22" cy="38" r="5" />
+      <circle cx="42" cy="38" r="5" />
+      <path d="M27 38h10M16 50l4-6h24l4 6" />
+      {% endcall %}
+      {% call sleeve(10, 1975, 'Boombox', 'graphite') %}
+      <path d="M18 18v-6h28v6" />
+      <rect x="5" y="18" width="54" height="34" rx="4" />
+      <circle cx="17" cy="36" r="8" />
+      <circle cx="47" cy="36" r="8" />
+      <circle cx="17" cy="36" r="2.5" />
+      <circle cx="47" cy="36" r="2.5" />
+      <rect x="26" y="25" width="12" height="9" rx="1.5" />
+      <path d="M27 42h10" />
+      {% endcall %}
+      {% call sleeve(11, 1979, 'Walkman', 'ink') %}
+      <rect x="16" y="10" width="28" height="44" rx="4" />
+      <rect x="20" y="17" width="20" height="14" rx="2" />
+      <circle cx="26" cy="24" r="3" />
+      <circle cx="34" cy="24" r="3" />
+      <path d="M21 38h6M30 38h6M21 44h15" />
+      <path d="M44 18h6v24a6 6 0 0 1-6 6" />
+      {% endcall %}
+      {% call sleeve(12, 1982, 'CD', 'orange') %}
+      <circle cx="32" cy="32" r="25" />
+      <circle cx="32" cy="32" r="9" />
+      <circle cx="32" cy="32" r="3" />
+      <path d="M14 22a21 21 0 0 1 10-9M50 42a21 21 0 0 1-10 9" />
+      {% endcall %}
+      {% call sleeve(13, 1993, 'MP3', 'orange', current=true) %}
+      <path d="M16 6h22l12 12v40H16Z" />
+      <path d="M38 6v12h12" />
+      <path d="M22 44v-6M26 46v-10M30 44v-6M34 47v-12M38 44v-6M42 45v-8" />
+      {% endcall %}
+    </ul>
+  </div>
+</section>

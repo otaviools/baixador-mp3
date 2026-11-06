@@ -1,0 +1,165 @@
+/* Hero: título em linhas, contorno RPM ao fundo e botão Começar. */
+.eyebrow {
+  margin: 0 0 18px;
+  color: var(--muted);
+}
+
+.headline {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(44px, 11.5vw, 184px);
+  line-height: 0.86;
+  letter-spacing: -0.06em;
+}
+
+/* Terceira linha esmaecida (referência: Base) */
+.headline .line-faded {
+  color: color-mix(in srgb, var(--ink) 50%, transparent);
+}
+
+.headline .line:nth-child(3) > span {
+  animation-delay: 0.24s;
+}
+
+.headline em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+/* Linhas sobem uma a uma ao carregar */
+/* A máscara (overflow) precisa de folga para acentos e letras com descendente
+   (o "g" de "segundos"); a margem negativa devolve o espaçamento entre linhas. */
+.headline .line {
+  display: block;
+  overflow: hidden;
+  padding: 0.1em 0 0.2em;
+  margin: -0.1em 0 -0.2em;
+}
+
+.headline .line > span {
+  display: inline-block;
+  animation: rise 1s var(--ease) both;
+}
+
+.headline .line:nth-child(2) > span {
+  animation-delay: 0.12s;
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(105%);
+  }
+}
+
+.lead {
+  max-width: 100%;
+  margin: 0;
+  font-size: 17px;
+  color: var(--ink-2);
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: min(86svh, 880px);
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(48px, 8vw, 104px) 0 clamp(40px, 6vw, 72px);
+}
+
+.hero-inner {
+  width: 100%;
+}
+
+/* "33⅓ RPM — 45 RPM — 78 RPM" em contorno, passando devagar ao fundo (referência: TIDAL) */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero-bg-track {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(120px, 22vw, 340px);
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--ink) 14%, transparent);
+  transform: translateY(-18%);
+  animation: marquee 90s linear infinite;
+}
+
+.hero-bg-track span {
+  padding-right: 0.3em;
+}
+
+.hero-foot {
+  margin-top: clamp(28px, 4vw, 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px 48px;
+  padding-top: 30px;
+  border-top: 1px solid var(--line);
+}
+
+.hero-cta {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 24px 0 12px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  transition: background 0.3s;
+}
+
+.cta:hover {
+  background: var(--accent);
+}
+
+.cta-disc {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      var(--paper) 0 7%,
+      var(--accent) 8% 30%,
+      transparent 31%
+    ),
+    repeating-radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.12) 0 1px,
+      transparent 1px 3px
+    ),
+    #050505;
+  animation: spin 3.6s linear infinite;
+}
+
+.cta:hover .cta-disc {
+  animation-duration: 1.2s;
+}

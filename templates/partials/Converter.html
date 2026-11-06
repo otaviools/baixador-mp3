@@ -1,0 +1,146 @@
+{#- Lado A: link, toca-discos (prévia, progresso, player) e controles da conversão. -#}
+<section class="side-a" id="converter" aria-labelledby="converterTitle">
+  <header class="section-head">
+    <h2 class="section-title" id="converterTitle">Prense o seu disco</h2>
+  </header>
+
+  <form class="deck" id="form" novalidate>
+    <!-- Link -->
+    <div class="link-block">
+      <div class="field">
+        <label class="label mono" for="url">01 — Link do vídeo</label>
+        <div class="url-box" id="urlBox">
+          <input id="url" name="url" type="url" inputmode="url" placeholder="youtube.com/watch?v=…" autocomplete="off" spellcheck="false" aria-describedby="urlHint">
+          <button type="button" class="clear-btn" id="clearBtn" aria-label="Limpar link" title="Limpar link" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+          <button type="button" class="paste-btn mono" id="pasteBtn">Colar</button>
+        </div>
+        <p class="hint" id="urlHint">Aceita youtube.com, youtu.be, Shorts e YouTube Music.</p>
+      </div>
+    </div>
+
+    <!-- Toca-discos: fica parado no lugar -->
+    <div class="turntable">
+      <div class="record" id="record" data-state="idle">
+        <div class="vinyl-wrap" id="vinylWrap">
+          <div class="vinyl" id="vinyl">
+            <div class="grooves"></div>
+            <div class="label-disc">
+              <img id="labelImg" alt="">
+              <span class="spindle"></span>
+            </div>
+          </div>
+          <div class="sheen" aria-hidden="true"></div>
+          <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="ring-track" cx="50" cy="50" r="48" />
+            <circle class="ring-fill" id="ringFill" cx="50" cy="50" r="48" pathLength="100" />
+          </svg>
+        </div>
+
+        <div class="sleeve" id="sleeve">
+          <img id="sleeveImg" alt="">
+          <div class="sleeve-blank" aria-hidden="true">
+            <span class="mono">djwaltin®</span>
+            <strong>Lado A</strong>
+            <span class="mono">33⅓ rpm · mp3</span>
+          </div>
+          <div class="sleeve-skeleton" aria-hidden="true"></div>
+        </div>
+
+        <!-- Braço do toca-discos: desce sobre o disco ao converter ou tocar -->
+        <svg class="tonearm" viewBox="0 0 60 200" aria-hidden="true">
+          <circle class="ta-base" cx="40" cy="24" r="17" />
+          <circle class="ta-base-ring" cx="40" cy="24" r="11" />
+          <g class="ta-arm">
+            <rect class="ta-weight" x="33" y="1" width="14" height="13" rx="2.5" />
+            <path class="ta-tube" d="M40 14 V150 L31 175" />
+            <rect class="ta-head" x="23" y="171" width="14" height="20" rx="2.5" transform="rotate(20 30 181)" />
+            <circle class="ta-pivot" cx="40" cy="24" r="4.5" />
+          </g>
+        </svg>
+
+        <div class="progress-read mono" id="progressRead" aria-hidden="true">
+          <span id="progressPct">0</span><small>%</small>
+        </div>
+      </div>
+
+      <div class="caption" id="caption" aria-live="polite">
+        <p class="caption-title" id="captionTitle">Nenhum disco no prato</p>
+        <p class="caption-meta mono" id="captionMeta">Cole um link para começar</p>
+      </div>
+
+      <div class="sr-only" id="meter" role="progressbar" aria-label="Progresso da conversão" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+
+      <!-- Resultado + player -->
+      <section class="result" id="result" hidden aria-label="MP3 pronto">
+        <div class="player">
+          <button type="button" class="play-btn" id="playBtn" aria-label="Tocar prévia" disabled>
+            <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 5h4v14H7zM13 5h4v14h-4z" />
+            </svg>
+          </button>
+          <div class="wave">
+            <canvas id="wave" aria-hidden="true"></canvas>
+            <input type="range" id="seek" min="0" max="100" step="0.1" value="0" aria-label="Posição na música" disabled>
+            <span class="wave-loading mono" id="waveLoading">Carregando prévia…</span>
+          </div>
+          <span class="time mono" id="time">0:00 / 0:00</span>
+          <audio id="audio" preload="auto"></audio>
+        </div>
+        <div class="result-actions">
+          <a class="save-btn" id="resultLink" href="#">
+            <span>Salvar MP3</span><span class="mono" id="resultSize"></span>
+          </a>
+          <button type="button" class="text-btn mono" id="againBtn">Converter outro ↺</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Controles: prensagem + botão + etapas -->
+    <div class="controls">
+      <fieldset class="field">
+        <legend class="label mono">02 — Prensagem</legend>
+        <div class="pressings">
+          {% for kbps, label in [('128', 'Preto · baixa'), ('192', 'Laranja · média'), ('320', 'Dourado · máxima')] %}
+          <label class="pressing" style="--vinyl: var(--vinyl-{{ kbps }})">
+            <input type="radio" name="qualidade" value="{{ kbps }}"{{ ' checked' if kbps == '192' }}>
+            <span class="pressing-swatch" aria-hidden="true"></span>
+            <span class="pressing-kbps">{{ kbps }}<small>kbps</small></span>
+            <span class="pressing-name">{{ label }}</span>
+            <span class="pressing-size mono" data-kbps="{{ kbps }}"></span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <button type="submit" class="go-btn" id="goBtn">
+        <span class="go-label" id="goLabel" data-busy-label="Prensando o disco…">Converter para MP3</span>
+        <span class="go-arrow" aria-hidden="true">→</span>
+      </button>
+
+      <ol class="steps mono" id="steps" hidden aria-label="Etapas da conversão">
+        {#- data-step: status do job enviado pelo servidor; data-detail: frase da legenda e do leitor de tela -#}
+        {% for status, label, detail in [
+          ('iniciando', 'Conectando', 'Conectando ao YouTube'),
+          ('baixando', 'Baixando', 'Baixando o áudio'),
+          ('convertendo', 'Convertendo', 'Convertendo para MP3'),
+          ('concluido', 'Pronto', 'Pronto'),
+        ] %}
+        <li data-step="{{ status }}" data-detail="{{ detail }}"><b>{{ '%02d' % loop.index }}</b>{{ label }}</li>
+        {% endfor %}
+      </ol>
+      <p class="sr-only" id="stepStatus" aria-live="polite"></p>
+
+      <div class="error" id="errorBox" role="alert" hidden>
+        <p class="error-msg" id="errorMsg"></p>
+        <button type="button" class="text-btn mono" id="retryBtn">Tentar de novo ↻</button>
+      </div>
+    </div>
+  </form>
+</section>

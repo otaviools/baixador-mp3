@@ -1,0 +1,74 @@
+/* Layout: largura da página, seção do conversor e grade do deck. */
+.page {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* O disco girando ocupa uma caixa maior na diagonal: o excesso é cortado aqui, na borda da
+   página, para a margem lateral impedir que o player e os botões (zoom no hover, foco) sejam cortados. */
+.page-sides {
+  overflow-x: clip;
+}
+
+.side-a {
+  padding: clamp(48px, 7vw, 96px) 0 clamp(64px, 8vw, 104px);
+  scroll-margin-top: 60px;
+}
+
+/* Cabeçalho de seção: linha fina + rótulos em mono (referência: A24) */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding-top: 2px;
+  margin-bottom: clamp(28px, 4vw, 30px);
+}
+
+.section-title {
+  margin: 0 auto 0 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(32px, 4vw, 52px);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+/* Deck: link e controles à esquerda, toca-discos parado à direita.
+   Nada gruda na tela ao rolar. */
+/* Duas colunas iguais; as linhas vazias (".") acima e abaixo da coluna esquerda
+   são espaçadores flexíveis que a centralizam verticalmente em relação ao disco. */
+.deck {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    ". turntable"
+    "link turntable"
+    "controls turntable"
+    ". turntable";
+  grid-template-rows: 1fr auto auto 1fr;
+  column-gap: clamp(40px, 8vw, 96px);
+  row-gap: 40px;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.link-block {
+  grid-area: link;
+}
+
+.turntable {
+  grid-area: turntable;
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 580px;
+}
+
+.controls {
+  grid-area: controls;
+}
+
+.link-block .field {
+  margin-bottom: 0;
+}
