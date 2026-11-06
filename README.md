@@ -89,7 +89,42 @@ Conventions:
 python -m unittest
 ```
 
+## ☁️ Deploy on Render (Docker)
+
+The app runs as a single long-lived process: jobs are kept in memory, conversions run in a background thread and files live in a temp folder. That is why it is deployed as a Docker web service, not as serverless functions (Vercel, Netlify, Lambda). FFmpeg is installed inside the image, so nothing has to be set up on the host.
+
+Files involved:
+
+- `Dockerfile`: Python 3.14 + FFmpeg + gunicorn, running as a non-root user.
+- `render.yaml`: Render Blueprint (web service, Docker runtime, free plan, deploys the `main` branch).
+- `.dockerignore`: keeps tests, docs and git history out of the image.
+
+Steps:
+
+1. Push the code to GitHub (`main` branch).
+2. On [Render](https://render.com), choose **New → Blueprint** and select this repository. Render reads `render.yaml` and builds the `Dockerfile`.
+3. Open the `*.onrender.com` URL when the deploy finishes. Each push to `main` deploys again.
+
+Test the same image locally (requires Docker):
+
+```bash
+docker build -t djwaltin .
+```
+
+```bash
+docker run --rm -p 10000:10000 djwaltin
+```
+
+Then open http://localhost:10000.
+
+Things to know:
+
+- **One worker only.** gunicorn runs with `--workers 1 --threads 8`. More workers would each have their own job list, and status polling would fail with "Job não encontrado.".
+- **Free plan sleeps.** The instance stops after 15 minutes without traffic; the first visit after that takes a while, and jobs in progress are lost on restart.
+- **YouTube may block cloud IPs** ("Sign in to confirm you're not a bot"). yt-dlp can use a cookies file in that case. Treat that file as a secret (Render Secret Files), never commit it.
+- **Terms of use.** A public YouTube downloader conflicts with YouTube's Terms of Service. For personal use, keep the URL private or put the service behind authentication.
+
 📌 Important Notes
-FFmpeg Required: Make sure FFmpeg is installed and configured in your system's environment variables.
-Local Only: The server runs strictly on your localhost. It is completely private and inaccessible from the outside.
+FFmpeg Required: Make sure FFmpeg is installed and configured in your system's environment variables when running locally (the Docker image already includes it).
+Local by default: `python app.py` only listens on localhost. It is reachable from the outside only if you deploy it (see above).
 Disclaimer: Use this tool responsibly and only download content you have the rights to.

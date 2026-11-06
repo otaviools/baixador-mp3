@@ -1,0 +1,16 @@
+# Fica fora da imagem: só o que o servidor precisa para rodar entra nela
+.git
+.gitignore
+.claude
+.venv
+venv
+__pycache__
+**/__pycache__
+*.py[cod]
+tests
+docs
+LEIA-ME.txt
+README.md
+Dockerfile
+.dockerignore
+render.yaml

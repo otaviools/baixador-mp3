@@ -30,7 +30,8 @@ configurações do navegador:
 OBSERVAÇÕES
 ===========
 - Precisa do FFmpeg instalado no sistema (você já configurou isso).
-- O servidor roda só na sua máquina (localhost) -- ninguém de fora acessa.
+- Com "python app.py" o servidor roda só na sua máquina (localhost) --
+  ninguém de fora acessa. Só fica público se você fizer o deploy (abaixo).
 - Use apenas para conteúdo que você tem direito de baixar.
 
 ESTRUTURA DO PROJETO
@@ -54,3 +55,37 @@ CONVENÇÕES
 TESTES
 ======
    python -m unittest
+
+DEPLOY NO RENDER (DOCKER)
+=========================
+O app roda como um processo contínuo (jobs na memória, conversão em segundo
+plano, arquivos numa pasta temporária). Por isso o deploy é com Docker, e não
+com funções serverless (Vercel, Netlify, Lambda). O FFmpeg vai dentro da imagem.
+
+Arquivos:
+- Dockerfile: Python 3.14 + FFmpeg + gunicorn, sem rodar como root.
+- render.yaml: Blueprint do Render (web service Docker, plano free, branch main).
+- .dockerignore: deixa testes, docs e o histórico do git fora da imagem.
+
+Passos:
+1. Envie o código para o GitHub (branch main).
+2. No Render: New > Blueprint > escolha este repositório.
+3. Quando o deploy terminar, abra a URL *.onrender.com. Cada push na main
+   faz um deploy novo.
+
+Testar a mesma imagem no seu computador (precisa do Docker aberto):
+   docker build -t djwaltin .
+   docker run --rm -p 10000:10000 djwaltin
+   e abra http://localhost:10000
+
+Importante:
+- Um worker só (gunicorn --workers 1 --threads 8). Com mais workers, cada um
+  teria sua própria lista de jobs e a consulta de status daria
+  "Job não encontrado.".
+- O plano free dorme depois de 15 minutos sem acesso; a primeira visita depois
+  disso demora, e conversões em andamento se perdem.
+- O YouTube pode bloquear IPs de nuvem ("Sign in to confirm you're not a bot").
+  Nesse caso o yt-dlp aceita um arquivo de cookies: trate-o como senha (Secret
+  Files do Render) e nunca o coloque no repositório.
+- Um baixador do YouTube aberto ao público conflita com os Termos de Serviço
+  do YouTube. Para uso pessoal, mantenha a URL privada ou proteja com senha.

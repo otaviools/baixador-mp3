@@ -1,2 +1,4 @@
 flask
 yt-dlp>=2026.8.19
+# Servidor de produção (Docker/Render). Não roda no Windows; localmente use python app.py
+gunicorn>=23; sys_platform != "win32"
