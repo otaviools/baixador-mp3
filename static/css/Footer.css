@@ -1,0 +1,55 @@
+/* Rodapé: aviso, código de barras e marca gigante. */
+.footer {
+  margin-top: 64px;
+  border-top: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.footer-top {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 28px var(--gutter) 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 32px;
+  align-items: center;
+}
+
+.footer-top .mono {
+  margin: 0;
+}
+
+.footer-note {
+  margin: 0;
+  max-width: 100%;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.barcode {
+  width: 120px;
+  height: 36px;
+  color: var(--ink);
+}
+
+.barcode-text {
+  font-family: var(--mono);
+  font-size: 5px;
+  letter-spacing: 0.08em;
+  fill: currentColor;
+}
+
+/* Marca gigante e apagada (referência: Feather) */
+.footer-mark {
+  margin: 12px 0 0;
+  text-align: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 23.5vw;
+  line-height: 0.74;
+  letter-spacing: -0.07em;
+  color: color-mix(in srgb, var(--ink) 100%, transparent);
+  white-space: nowrap;
+  user-select: none;
+  transform: translateY(0.12em);
+}

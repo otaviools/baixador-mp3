@@ -1,0 +1,428 @@
+/* Formulário: campo de link, botões Colar/X, prensagens, botão principal, etapas e erro. */
+.field {
+  margin: 0 0 30px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.label {
+  display: block;
+  margin: 0 0 10px;
+  padding: 0;
+  color: var(--muted);
+}
+
+/* Campo de link: só uma linha de base, texto grande */
+.url-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid var(--ink);
+  transition: border-color 0.2s;
+}
+
+.url-box:focus-within {
+  border-color: var(--accent);
+}
+
+.url-box.is-invalid {
+  border-color: var(--danger);
+}
+
+#url {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 10px 0 12px;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(18px, 2vw, 22px);
+  letter-spacing: -0.02em;
+  outline: none;
+}
+
+#url::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.paste-btn {
+  flex: none;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.paste-btn:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+/* Botão "X": limpa o link; só aparece quando o campo tem texto */
+.clear-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  animation: clear-in 0.25s var(--ease);
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.3s var(--ease);
+}
+
+.clear-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.clear-btn:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+  transform: rotate(90deg);
+}
+
+@keyframes clear-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.hint.is-error {
+  color: var(--danger);
+}
+
+.hint.is-ok {
+  color: var(--ink);
+}
+
+.hint.is-ok::before {
+  content: "● ";
+  color: var(--ok);
+}
+
+/* Prensagens: três cartões lado a lado, como teclas de um aparelho */
+.pressings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pressing {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "swatch size"
+    "kbps kbps"
+    "name name";
+  align-items: center;
+  row-gap: 4px;
+  padding: 14px 14px 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    border-color 0.25s,
+    transform 0.25s var(--ease);
+}
+
+.pressing:hover {
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+
+.pressing-swatch {
+  grid-area: swatch;
+  margin-bottom: 8px;
+}
+
+.pressing-kbps {
+  grid-area: kbps;
+}
+
+.pressing-name {
+  grid-area: name;
+}
+
+.pressing-size {
+  grid-area: size;
+  align-self: start;
+}
+
+.pressing input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pressing:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.pressing:has(input:checked) {
+  background: var(--paper-2);
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.pressing-swatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      var(--paper) 0 12%,
+      var(--accent) 13% 26%,
+      transparent 27%
+    ),
+    repeating-radial-gradient(
+      circle,
+      rgba(0, 0, 0, 0.18) 0 1px,
+      transparent 1px 3px
+    ),
+    var(--vinyl);
+  box-shadow: 0 0 0 1px var(--line);
+  transition: transform 0.6s var(--ease);
+}
+
+.pressing:has(input:checked) .pressing-swatch {
+  transform: rotate(180deg) scale(1.12);
+  box-shadow:
+    0 0 0 2px var(--paper),
+    0 0 0 3px var(--ink);
+}
+
+.pressing-kbps {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.pressing-kbps small {
+  margin-left: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pressing-name {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.pressing-size {
+  color: var(--muted);
+  text-align: right;
+}
+
+/* Botão principal */
+.go-btn {
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Preenchimento laranja desliza no hover */
+.go-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: translateX(-101%);
+  transition: transform 0.5s var(--ease);
+}
+
+.go-btn:hover::before {
+  transform: none;
+}
+
+.go-arrow {
+  font-size: 22px;
+  transition: transform 0.5s var(--ease);
+}
+
+.go-btn:hover .go-arrow {
+  transform: translateX(6px);
+}
+
+.go-btn:disabled {
+  cursor: progress;
+  background: var(--ink-2);
+}
+
+.go-btn:disabled::before {
+  transform: none;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 10px,
+    rgba(255, 255, 255, 0.06) 10px 20px
+  );
+  animation: stripes 1s linear infinite;
+}
+
+@keyframes stripes {
+  to {
+    background-position: 28px 0;
+  }
+}
+
+form:has(.go-btn:disabled) .field {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Etapas */
+.steps {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  color: var(--muted);
+}
+
+.steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  position: relative;
+}
+
+.steps li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--line);
+}
+
+.steps li::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.6s var(--ease);
+}
+
+.steps b {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.steps li.is-active {
+  color: var(--ink);
+}
+
+.steps li.is-active::after {
+  width: 45%;
+  animation: working 1.2s ease-in-out infinite alternate;
+}
+
+.steps li.is-done {
+  color: var(--ink);
+}
+
+.steps li.is-done::after {
+  width: 100%;
+}
+
+@keyframes working {
+  from {
+    width: 15%;
+  }
+
+  to {
+    width: 80%;
+  }
+}
+
+.error {
+  margin-top: 24px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.error-msg {
+  margin: 0;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.text-btn {
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  cursor: pointer;
+  color: var(--ink);
+  border-bottom: 1px solid currentColor;
+}
+
+.text-btn:hover {
+  color: var(--accent);
+}

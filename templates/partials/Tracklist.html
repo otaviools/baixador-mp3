@@ -1,0 +1,15 @@
+{#- Lado B: histórico das conversões (só neste navegador). O Tracklist.js clona as linhas do <template>. -#}
+<section class="side-b" aria-labelledby="historyTitle">
+  <header class="side-b-head">
+    <p class="eyebrow mono">Lado B</p>
+    <h2 class="side-b-title" id="historyTitle">Tracklist</h2>
+    <button type="button" class="text-btn mono" id="clearHistory" hidden>Limpar</button>
+  </header>
+  <ol class="tracklist" id="historyList"></ol>
+  <p class="tracklist-empty" id="historyEmpty">
+    As faixas que você converter aparecem aqui. Ficam salvas só neste navegador.
+  </p>
+  <template id="trackTemplate">
+    <li class="track"><span class="track-no"></span><img alt="" loading="lazy"><div class="track-body"><p class="track-title"></p><p class="track-sub"></p></div><span class="track-meta mono"><span class="track-dot"></span></span><button type="button" class="text-btn mono">Converter de novo</button></li>
+  </template>
+</section>

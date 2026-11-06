@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>djwaltin | Baixar Músicas MP3</title>
+  <meta name="description" content="Converta o áudio de um vídeo do YouTube em MP3, com prévia, player e histórico.">
+  <meta name="theme-color" id="themeColor" content="#ecebe6">
+  <script>
+    // Tema antes da primeira pintura (sem piscar): escolha salva, senão a preferência do sistema.
+    // Depois disso, quem cuida é o ThemeToggle.js.
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('djwaltin-theme')
+        ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    } catch {
+      document.documentElement.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+  </script>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,500;100,700;100,800&family=IBM+Plex+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+  {#- A ordem importa: Tokens primeiro, Responsive e Motion por último (cascata). #}
+  {% for stylesheet in ['Tokens', 'Base', 'Header', 'Layout', 'Hero', 'Shelf', 'Form', 'Turntable', 'Player', 'Tracklist', 'Footer', 'Toasts', 'Responsive', 'Motion'] %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/' ~ stylesheet ~ '.css') }}">
+  {% endfor %}
+  <script type="module" src="{{ url_for('static', filename='js/App.js') }}"></script>
+</head>
+
+<body>
+  <a class="skip" href="#url">Pular para o campo de link</a>
+
+  {% include 'partials/Header.html' %}
+
+  <main>
+    {% include 'partials/Hero.html' %}
+    {% include 'partials/Shelf.html' %}
+
+    <div class="page page-sides">
+      {% include 'partials/Converter.html' %}
+      {% include 'partials/Tracklist.html' %}
+    </div>
+  </main>
+
+  {% include 'partials/Footer.html' %}
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+
+</html>

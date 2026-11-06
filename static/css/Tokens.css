@@ -1,0 +1,43 @@
+/* Tokens: cores, fontes e medidas. O tema vem do data-theme no <html>, definido antes da primeira
+   pintura pelo script inline do Index.html (escolha salva, ou a preferência do sistema). */
+:root {
+  --paper: #ecebe6;
+  --paper-2: #e2e0d8;
+  --ink: #121110;
+  --ink-2: #3a3834;
+  --muted: #6c6962;
+  --line: rgba(18, 17, 16, 0.14);
+  --line-strong: rgba(18, 17, 16, 0.3);
+  --accent: #ff4f1f; /* laranja-vinil */
+  --danger: #c8261a;
+  --ok: #1d7a43;
+
+  /* Cores das prensagens */
+  --vinyl-128: #161514;
+  --vinyl-192: #ff6a2b;
+  --vinyl-320: #e6b12e;
+
+  --display: "Archivo", "Arial Narrow", sans-serif;
+  --sans: "Inter Tight", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --max: 1240px;
+  --gutter: clamp(16px, 4vw, 40px);
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --paper: #121110;
+  --paper-2: #1c1b19;
+  --ink: #ecebe6;
+  --ink-2: #c9c6be;
+  --muted: #9a968d;
+  --line: rgba(236, 235, 230, 0.13);
+  --line-strong: rgba(236, 235, 230, 0.28);
+  --danger: #ff6b5e;
+  --ok: #4fd18b;
+  --vinyl-128: #050505;
+
+  color-scheme: dark;
+}

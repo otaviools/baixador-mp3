@@ -1,0 +1,242 @@
+/* Cabeçalho: logo, status do FFmpeg, equalizador, relógio e chave de tema. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 14px var(--gutter);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  text-decoration: none;
+  justify-self: start;
+}
+
+.logo sup {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.logo-disc {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent) 0 18%, var(--ink) 19% 100%);
+  box-shadow:
+    inset 0 0 0 3px var(--ink),
+    inset 0 0 0 4px var(--paper);
+}
+
+body.is-spinning .logo-disc {
+  animation: spin 1.8s linear infinite;
+}
+
+.topbar-right {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--muted);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+.status.is-off .status-dot {
+  background: var(--danger);
+}
+
+.status.is-off {
+  color: var(--danger);
+}
+
+.clock {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Equalizador: anima enquanto a prévia toca */
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.eq i {
+  width: 2px;
+  height: 3px;
+  background: var(--ink);
+  transform-origin: bottom;
+}
+
+body.is-playing .eq i {
+  animation: eq 0.9s ease-in-out infinite alternate;
+  background: var(--accent);
+}
+
+.eq i:nth-child(2) {
+  animation-delay: -0.3s !important;
+}
+
+.eq i:nth-child(3) {
+  animation-delay: -0.6s !important;
+}
+
+.eq i:nth-child(4) {
+  animation-delay: -0.15s !important;
+}
+
+@keyframes eq {
+  from {
+    height: 2px;
+  }
+
+  to {
+    height: 12px;
+  }
+}
+
+/* Chave de tema (referências: chave em pílula do Bolt.new, ícone sol/lua do Ferndesk).
+   O botão deslizante é um mini disco: rola para o outro lado (desliza + gira 360°)
+   enquanto o sol laranja dentro dele vira lua. */
+.theme-toggle {
+  --knob: 22px;
+  --travel: 24px;
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 5px, var(--line) 5px 6px) center / 60% 1px no-repeat,
+    var(--paper-2);
+  cursor: pointer;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.theme-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: var(--knob);
+  height: var(--knob);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, #1b1a18 0 1.1px, #2c2a27 1.5px 2.3px);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transition: transform 0.7s var(--ease);
+}
+
+:root[data-theme="dark"] .theme-toggle-knob {
+  transform: translateX(var(--travel)) rotate(360deg);
+}
+
+.theme-icon {
+  width: 14px;
+  height: 14px;
+  overflow: visible;
+}
+
+.theme-icon-core {
+  fill: var(--accent);
+  transform-origin: 12px 12px;
+  transition: transform 0.6s var(--ease);
+}
+
+.theme-icon-rays {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transform-origin: 12px 12px;
+  transition:
+    transform 0.6s var(--ease),
+    opacity 0.3s;
+}
+
+/* Claro: a "mordida" fica fora do ícone, então o centro é um sol inteiro */
+.theme-icon-bite {
+  transform: translate(9px, -9px);
+  transition: transform 0.6s var(--ease);
+}
+
+:root[data-theme="dark"] .theme-icon-core {
+  transform: scale(1.7);
+}
+
+:root[data-theme="dark"] .theme-icon-rays {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.4);
+}
+
+:root[data-theme="dark"] .theme-icon-bite {
+  transform: none;
+}
+
+/* Revelação da página: o novo tema se espalha em círculo a partir da chave (View Transitions API).
+   O ThemeToggle.js define --reveal-x, --reveal-y e --reveal-r antes da transição começar. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: theme-reveal 0.75s var(--ease);
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--reveal-x) var(--reveal-y));
+  }
+
+  to {
+    clip-path: circle(var(--reveal-r) at var(--reveal-x) var(--reveal-y));
+  }
+}

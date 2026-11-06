@@ -10,7 +10,7 @@ COMO RODAR
 3. Abra no navegador:
    http://localhost:5000
 
-4. Cole o link do YouTube, escolha a qualidade e clique em "BAIXAR E CONVERTER".
+4. Cole o link do YouTube, escolha a qualidade e clique em "Converter para MP3".
    O navegador vai perguntar onde salvar o MP3 (ou salvar direto na pasta
    de Downloads padrão, dependendo da configuração do seu navegador).
    O arquivo NÃO fica salvo dentro da pasta do projeto -- ele é gerado
@@ -32,3 +32,25 @@ OBSERVAÇÕES
 - Precisa do FFmpeg instalado no sistema (você já configurou isso).
 - O servidor roda só na sua máquina (localhost) -- ninguém de fora acessa.
 - Use apenas para conteúdo que você tem direito de baixar.
+
+ESTRUTURA DO PROJETO
+====================
+- app.py: só as rotas HTTP (Flask).
+- converter/: regras do backend (config, jobs, youtube, conversion).
+- templates/Index.html + templates/partials/: uma parte Jinja por seção da página.
+- static/css/: um arquivo por seção, carregados na ordem da cascata.
+- static/js/App.js: ponto de entrada; lib/ (utilidades) e components/ (cada parte da tela).
+- tests/: testes do backend (o yt-dlp é simulado, não precisa de internet).
+
+CONVENÇÕES
+- Arquivos do front-end (JS, CSS, templates) em PascalCase; módulos Python em
+  minúsculas, como pede a PEP 8.
+- Nomes no código (variáveis, funções, classes, arquivos) em inglês.
+  Comentários e docstrings em português, assim como o que a pessoa vê
+  (textos da tela, mensagens de erro) e os dados: rotas e campos da API
+  (/api/baixar, qualidade, erro, status) e o histórico salvo no navegador.
+- Prints do site: pasta docs/screenshots/ (aparecem no README do GitHub).
+
+TESTES
+======
+   python -m unittest

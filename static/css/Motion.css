@@ -1,0 +1,20 @@
+/* Movimento reduzido: desliga animações para quem pede isso no sistema. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Sem movimento automático: a prateleira vira uma faixa rolável à mão */
+  .eras-track,
+  .hero-bg-track {
+    animation: none !important;
+  }
+
+  .eras-viewport {
+    overflow-x: auto;
+  }
+}
